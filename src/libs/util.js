@@ -157,7 +157,7 @@ util.showThisRoute = function (itAccess, currentAccess) {
     } else {
         return itAccess === currentAccess
     }
-}
+};
 
 util.openPage = function (vm, name) {
     vm.$router.push({name: name});

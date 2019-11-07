@@ -79,6 +79,12 @@
                               <span slot="close">关</span>
                             </i-switch>
                           </FormItem>
+                          <FormItem label="开启最小化回滚语句生成">
+                            <i-switch size="large" v-model="juno.DMLMinimalRollback">
+                              <span slot="open">开</span>
+                              <span slot="close">关</span>
+                            </i-switch>
+                          </FormItem>
                         </Form>
                       </Col>
                       <Col span="6">
@@ -149,6 +155,12 @@
                         <Form :label-width="150">
                           <FormItem label="允许主键类型非int/bigint">
                             <i-switch size="large" v-model="juno.DDLAllowPRINotInt">
+                              <span slot="open">开</span>
+                              <span slot="close">关</span>
+                            </i-switch>
+                          </FormItem>
+                          <FormItem label="检查类型隐式转换">
+                            <i-switch size="large" v-model="juno.DDLImplicitTypeConversion">
                               <span slot="open">开</span>
                               <span slot="close">关</span>
                             </i-switch>

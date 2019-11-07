@@ -1,0 +1,24 @@
+import Vue from 'vue'
+import VueI18n from 'vue-i18n';
+import zh from 'iview/dist/locale/zh-CN';
+import en from 'iview/dist/locale/en-US';
+import app_zh from './zh-cn.json'
+import app_en from './en-us.json';
+
+Vue.use(VueI18n);
+Vue.locale = () => {
+};
+
+const messages = {
+    en: Object.assign(app_en, en),
+    zh: Object.assign(app_zh, zh)
+};
+
+// Create VueI18n instance with options
+const i18n = new VueI18n({
+    locale: 'zh',  // set locale
+    messages  // set locale messages
+});
+
+export default i18n
+
