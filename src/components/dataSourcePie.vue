@@ -57,7 +57,7 @@
                   avoidLabelOverlap: false,
                   name: '访问来源',
                   type: 'pie',
-                  radius: ['40%', '80%'],
+                  radius: ['50%', '80%'],
                   center: ['50%', '45%'],
                   data: piedata,
                   itemStyle: {
