@@ -11,7 +11,6 @@ import store from './store'
 import './styles/theme.less'
 import config from './libs/util'
 import particles from 'particles.js/particles'
-import i18n from './language'
 
 Vue.config.productionTip = false;
 Vue.prototype.$config = config;
@@ -53,6 +52,5 @@ new Vue({
     template: '<Subnet/>',
     components: {Subnet},
     store: store,
-    router: router,
-    i18n: i18n
+    router: router
 });

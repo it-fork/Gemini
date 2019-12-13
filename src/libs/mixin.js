@@ -203,3 +203,82 @@ export const order = {
         }
     }
 };
+
+export const group = {
+    data() {
+        return {
+            connectionList: {
+                connection: [],
+                person: [],
+                query: []
+            },
+            pagenumber: 1,
+            data6: [],
+            query: {
+                username: '',
+                valve: false
+            },
+            indeterminate: {
+                ddl: true,
+                dml: true,
+                query: true,
+                person: true
+            },
+            checkAll: {
+                ddl: false,
+                dml: false,
+                query: false,
+                person: false
+            },
+            permission: {
+                ddl: '0',
+                ddlsource: [],
+                dml: '0',
+                dmlsource: [],
+                query: '0',
+                querysource: [],
+                user: '0',
+                base: '0',
+                auditor: []
+            },
+            addAuthGroupModal: false,
+            isReadOnly: false,
+        }
+    },
+    methods: {
+        queryData() {
+            this.query.valve = true;
+            this.refreshgroup()
+        },
+        queryCancel() {
+            this.$config.clearObj(this.query);
+            this.refreshgroup()
+        },
+        batchOpen() {
+            this.addAuthGroupModal = true;
+            this.addAuthGroupForm.groupname = '';
+            this.permission = this.$config.clearOption(this.permission);
+            this.refreshgroup();
+        },
+        editAuthGroup(vl) {
+            this.isReadOnly =  true;
+            this.addAuthGroupModal = true;
+            this.id = vl.ID;
+            this.addAuthGroupForm.groupname = vl.Name;
+            this.permission = vl.Permissions;
+        },
+        ddlCheckAll(name, indeterminate, ty) {
+            this.checkAll[indeterminate] = !this.checkAll[indeterminate]
+            this.indeterminate[indeterminate] = false;
+            if (this.checkAll[indeterminate]) {
+                if (ty === 'person') {
+                    this.permission[name] = this.connectionList[ty].map(vl => vl.Username);
+                } else {
+                    this.permission[name] = this.connectionList[ty].map(vl => vl.Source)
+                }
+            } else {
+                this.permission[name] = []
+            }
+        },
+    }
+};

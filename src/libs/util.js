@@ -202,7 +202,7 @@ util.clearObj = function (obj) {
 util.clearOption = function (obj) {
     for (let i in obj) {
         if (typeof obj[i] === 'object') {
-            obj[i] = ['']
+            obj[i] = []
         } else if (typeof obj[i] === 'string') {
             obj[i] = '0'
         } else if (typeof obj[i] === 'number') {

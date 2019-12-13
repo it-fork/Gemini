@@ -1,13 +1,14 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n';
+import iView from 'iview'
 import zh from 'iview/dist/locale/zh-CN';
 import en from 'iview/dist/locale/en-US';
 import app_zh from './zh-cn.json'
 import app_en from './en-us.json';
 
 Vue.use(VueI18n);
-Vue.locale = () => {
-};
+Vue.use(iView);
+Vue.locale = () => {};
 
 const messages = {
     en: Object.assign(app_en, en),

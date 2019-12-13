@@ -1,6 +1,5 @@
 <template>
-  <div>
-
+  <div style="height: 100%;overflow: scroll">
     <Menu width="auto" @on-select="currentPageTab" :active-name="currentPageName" accordion>
       <MenuItem name="main">
         <Row>
@@ -67,7 +66,8 @@
                     'authGroup': '0',
                     "perOrder": '0',
                     'roles': '0',
-                    'task': '0'
+                    'task': '0',
+                    'roleGroup': '0'
                 }
             }
         },
@@ -104,6 +104,7 @@
                     this.filtermenulist.perOrder = s.perOrder;
                     this.filtermenulist.roles = s.roles;
                     this.filtermenulist.task = s.task;
+                    this.filtermenulist.roleGroup = s.roleGroup;
                 })
         }
     }

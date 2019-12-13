@@ -30,25 +30,24 @@
           <Col span="24">
             <Table border :columns="columnsName" :data="table_data" stripe size="small">
               <template slot-scope="{ row }" slot="action">
-                <div>
-                  <Button type="success" @click="open_modal(row)" size="small" ghost
-                          class="margin-left-10">
-                    工单信息
-                  </Button>
-                  <Button type="warning" @click="openOrder(row)" size="small" v-if="row.Status !== 2" ghost
-                          class="margin-left-10">
-                    执行信息
-                  </Button>
-                  <Poptip
-                          confirm
-                          title="确定要撤销工单吗？"
-                          @on-ok="delOrder(row)"
-                          transfer>
-                    <Button type="primary" v-if="row.Status === 2" ghost size="small" class="margin-left-10">工单撤销</Button>
-                  </Poptip>
-                  <Button type="error" @click="orderReject(row)" v-if="row.Status === 0" size="small" ghost class="margin-left-10">驳回理由
-                  </Button>
-                </div>
+                <Button type="success" @click="open_modal(row)" size="small" ghost
+                        class="margin-left-10">
+                  工单信息
+                </Button>
+                <Button type="warning" @click="openOrder(row)" size="small" v-if="row.Status !== 2 && row.Status !==0" ghost
+                        class="margin-left-10">
+                  执行信息
+                </Button>
+                <Poptip
+                        confirm
+                        title="确定要撤销工单吗？"
+                        @on-ok="delOrder(row)"
+                        transfer>
+                  <Button type="primary" v-if="row.Status === 2" ghost size="small" class="margin-left-10">工单撤销</Button>
+                </Poptip>
+                <Button type="error" v-if="row.Status === 0" size="small" ghost
+                        class="margin-left-10" @click="orderReject(row)" >驳回理由
+                </Button>
               </template>
             </Table>
           </Col>
@@ -86,6 +85,15 @@
         </FormItem>
       </Form>
     </Modal>
+
+    <Modal
+            v-model="reject">
+      <p slot="header" style="color:#ff0049;font-size: 16px">
+        <Icon type="information-circled"></Icon>
+        <span>驳回理由</span>
+      </p>
+      <p style="font-size: 16px">{{reject_text}}</p>
+    </Modal>
   </div>
 </template>
 <script>
@@ -96,6 +104,7 @@
         name: 'put',
         data() {
             return {
+                reject: false,
                 openModal: false,
                 columnsName: [
                     {
@@ -171,6 +180,7 @@
                         width: 250
                     }
                 ],
+                reject_text: '',
                 page_number: 1,
                 computer_room: this.$config.computer_room,
                 table_data: [],
@@ -242,10 +252,8 @@
                 })
             },
             orderReject(row) {
-                this.$Modal.error({
-                    title: '驳回理由',
-                    content: row.Rejected
-                })
+                this.reject = true;
+                this.reject_text = row.Rejected;
             },
             delOrder(row) {
                 axios.get(`${this.$config.url}/fetch/undo?work_id=${row.WorkId}`)

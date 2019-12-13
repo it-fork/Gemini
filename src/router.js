@@ -241,6 +241,15 @@ export const appRouter = [{
         }
       },
       {
+        path: 'roleGroup',
+        name: 'roleGroup',
+        title: '权限组',
+        icon: 'logo-google',
+        component: resolve => {
+          require(['./views/management/roleGroup.vue'], resolve)
+        }
+      },
+      {
         path: 'setting',
         name: 'setting',
         title: '设置',

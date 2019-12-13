@@ -118,7 +118,7 @@
         name: 'sqlist',
         data() {
             const regExp_Name = (rule, value, callback) => {
-                let pPattern = new RegExp("[`~!@#$^&*()={}':;',\\[\\].<>/?~！@#￥……&*（）——{}【】‘；：”“'。，、？]");
+                let pPattern = new RegExp("[`~!@#$^&*()={}':;',\\[\\]<>/?~！@#￥……&*（）——{}【】‘；：”“'。，、？]");
                 if (pPattern.test(this.formItem.name)) {
                     callback(new Error('特殊字符仅可使用|与-'))
                 } else {

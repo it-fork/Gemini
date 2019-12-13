@@ -7,8 +7,8 @@
           用户权限
         </p>
         <div>
-          <Button type="primary" @click="batchOpen">普通用户批量赋权</Button>
-          <Input v-model="query.username" placeholder="请填写用户名" style="width: 15%" clearable class="margin-left-10"></Input>
+          <Input v-model="query.username" placeholder="请填写用户名" style="width: 15%" clearable
+                 class="margin-left-10"></Input>
           <Button @click="queryData" type="success" class="margin-left-10">查询</Button>
           <Button @click="queryCancel" type="warning" class="margin-left-10">重置</Button>
           <br>
@@ -18,137 +18,74 @@
               <Button type="info" size="small" @click="editAuthGroup(row)" style="margin-right: 5px">
                 查看与编辑
               </Button>
-              <Poptip
-                      confirm
-                      title="确定要清空该用户的权限吗？"
-                      @on-ok="deleteAuthGroup(row)"
-                      transfer
-              >
-                <Button type="warning" size="small">清空权限</Button>
-              </Poptip>
             </template>
           </Table>
         </div>
         <br>
-        <Page :total="pagenumber" show-elevator @on-change="splicpage" :page-size="10" ref="total"></Page>
+        <Page :total="pagenumber" show-elevator @on-change="fetch_info" :page-size="10" ref="total"></Page>
       </Card>
     </Row>
     <Modal v-model="addAuthGroupModal" :width="800">
       <h3 slot="header" style="color:#2D8CF0">用户权限</h3>
       <Form :model="addAuthGroupForm" :label-width="120" label-position="top">
         <FormItem label="用户名">
-          <Select v-model="addAuthGroupForm.more_user" v-if="is_more" multiple>
-            <Option v-for="i in more_user" :key="i" :value="i"></Option>
+          <Input v-model="addAuthGroupForm.username" readonly></Input>
+        </FormItem>
+        <FormItem label="权限组">
+          <Select v-model="addAuthGroupForm.group" @on-change="marge_group" clearable multiple>
+            <Option v-for=" i in group_list" :key="i.Name" :value="i.Name" :label="i.Name"></Option>
           </Select>
-          <Input v-model="addAuthGroupForm.groupname" v-bind:readonly="isReadOnly" v-else></Input>
-
         </FormItem>
         <template>
           <FormItem label="DDL及索引权限:">
-            <RadioGroup v-model="permission.ddl">
-              <Radio label="1">是</Radio>
-              <Radio label="0">否</Radio>
-            </RadioGroup>
+            <Tag v-if="permission.ddl==='1'" color="success">是</Tag>
+            <Tag v-else color="volcano">否</Tag>
           </FormItem>
           <template v-if="permission.ddl === '1'">
-            <FormItem label="连接名:">
-              <div style="border-bottom: 1px solid #e9e9e9;padding-bottom:6px;margin-bottom:6px;">
-                <Checkbox
-                        :indeterminate="indeterminate.ddl"
-                        :value="checkAll.ddl"
-                        @click.prevent.native="ddlCheckAll('ddl_source', 'ddl', 'connection')">全选
-                </Checkbox>
-              </div>
-              <CheckboxGroup v-model="permission.ddl_source">
-                <Checkbox v-for="i in connectionList.connection" :label="i.Source" :key="i.Source">
-                  <Tag color="purple" :key="i.Source"> {{i.Source}}</Tag>
-                </Checkbox>
-              </CheckboxGroup>
+            <FormItem label="数据源:">
+              <Tag color="purple" v-for="i in permission.ddl_source" :key="i"> {{i}}</Tag>
             </FormItem>
           </template>
           <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
           <br>
           <FormItem label="DML权限:">
-            <RadioGroup v-model="permission.dml">
-              <Radio label="1">是</Radio>
-              <Radio label="0">否</Radio>
-            </RadioGroup>
+            <Tag v-if="permission.dml==='1'" color="success">是</Tag>
+            <Tag v-else color="volcano">否</Tag>
           </FormItem>
           <template v-if="permission.dml === '1'">
-            <FormItem label="连接名:">
-              <div style="border-bottom: 1px solid #e9e9e9;padding-bottom:6px;margin-bottom:6px;">
-                <Checkbox
-                        :indeterminate="indeterminate.dml"
-                        :value="checkAll.dml"
-                        @click.prevent.native="ddlCheckAll('dml_source', 'dml', 'connection')">全选
-                </Checkbox>
-              </div>
-              <CheckboxGroup v-model="permission.dml_source">
-                <Checkbox v-for="i in connectionList.connection" :label="i.Source" :key="i.Source">
-                  <Tag color="geekblue" :key="i.Source"> {{i.Source}}</Tag>
-                </Checkbox>
-              </CheckboxGroup>
+            <FormItem label="数据源:">
+              <Tag color="geekblue" v-for="i in permission.dml_source" :key="i"> {{i}}</Tag>
             </FormItem>
           </template>
           <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
           <br>
           <FormItem label="数据查询权限:">
-            <RadioGroup v-model="permission.query">
-              <Radio label="1">是</Radio>
-              <Radio label="0">否</Radio>
-            </RadioGroup>
+            <Tag v-if="permission.query==='1'" color="success">是</Tag>
+            <Tag v-else color="volcano">否</Tag>
           </FormItem>
           <template v-if="permission.query === '1'">
-            <FormItem label="连接名:">
-              <div style="border-bottom: 1px solid #e9e9e9;padding-bottom:6px;margin-bottom:6px;">
-                <Checkbox
-                        :indeterminate="indeterminate.query"
-                        :value="checkAll.query"
-                        @click.prevent.native="ddlCheckAll('query_source', 'query', 'query')">全选
-                </Checkbox>
-              </div>
-              <CheckboxGroup v-model="permission.query_source">
-                <Checkbox v-for="i in connectionList.query" :label="i.Source" :key="i.Source">
-                  <Tag color="blue" :key="i.Source"> {{i.Source}}</Tag>
-                </Checkbox>
-              </CheckboxGroup>
+            <FormItem label="数据源:">
+              <Tag color="blue" v-for="i in permission.query_source" :key="i"> {{i}}</Tag>
             </FormItem>
           </template>
           <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
           <br>
           <FormItem label="选择上级审核人:">
-            <div style="border-bottom: 1px solid #e9e9e9;padding-bottom:6px;margin-bottom:6px;">
-              <Checkbox
-                      :indeterminate="indeterminate.person"
-                      :value="checkAll.person"
-                      @click.prevent.native="ddlCheckAll('auditor', 'person', 'person')">全选
-              </Checkbox>
-            </div>
-            <CheckboxGroup v-model="permission.auditor">
-              <Checkbox v-for="i in connectionList.person" :label="i.Username" :key="i.Username">
-                <Tag color="cyan" :key="i.Username"> {{i.Username}}</Tag>
-              </Checkbox>
-            </CheckboxGroup>
+            <Tag color="cyan" v-for="i in permission.auditor" :key="i"> {{i}}</Tag>
           </FormItem>
         </template>
-        <template v-if="addAuthGroupForm.rule === 'admin'">
-          <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
-          <br>
-          <FormItem label="用户管理权限:">
-            <RadioGroup v-model="permission.user">
-              <Radio label="1">是</Radio>
-              <Radio label="0">否</Radio>
-            </RadioGroup>
-          </FormItem>
-          <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
-          <br>
-          <FormItem label="数据库管理权限:">
-            <RadioGroup v-model="permission.base">
-              <Radio label="1">是</Radio>
-              <Radio label="0">否</Radio>
-            </RadioGroup>
-          </FormItem>
-        </template>
+        <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
+        <br>
+        <FormItem label="用户管理权限:">
+          <Tag v-if="permission.user==='1'" color="success">是</Tag>
+          <Tag v-else color="volcano">否</Tag>
+        </FormItem>
+        <hr style="height:1px;border:none;border-top:1px dashed #dddee1;"/>
+        <br>
+        <FormItem label="数据库管理权限:">
+          <Tag v-if="permission.base==='1'" color="success">是</Tag>
+          <Tag v-else color="volcano">否</Tag>
+        </FormItem>
       </Form>
       <div slot="footer">
         <Button type="text" @click="addAuthGroupModal = false">取消</Button>
@@ -160,6 +97,7 @@
 
 <script>
     import axios from 'axios'
+
     const structure = {
         ddl: '0',
         ddlsource: [],
@@ -179,9 +117,6 @@
                     username: '',
                     valve: false
                 },
-                more_user: [],
-                is_more: false,
-                isReadOnly: false,
                 pagenumber: 1,
                 data6: [],
                 columns: [
@@ -204,135 +139,76 @@
                     }
                 ],
                 permission: structure,
-                indeterminate: {
-                    ddl: true,
-                    dml: true,
-                    query: true,
-                    person: true
-                },
-                checkAll: {
-                    ddl: false,
-                    dml: false,
-                    query: false,
-                    person: false
-                },
-                connectionList: {
-                    connection: [],
-                    person: [],
-                    query: []
-                },
                 addAuthGroupForm: {
-                    groupname: '',
-                    rule: '',
-                    more_user: []
+                    username: '',
+                    group: ''
                 },
-                addAuthGroupModal: false
+                addAuthGroupModal: false,
+                group_list: []
             }
         },
         methods: {
-            batchOpen() {
-                this.addAuthGroupModal = true;
-                this.is_more = true;
-                this.permission = this.$config.clearOption(this.permission)
-            },
             editAuthGroup(vl) {
-                [this.isReadOnly, this.addAuthGroupModal, this.is_more] = [true, true, false];
+                [this.isReadOnly, this.addAuthGroupModal] = [true, true];
                 this.id = vl.ID;
-                this.addAuthGroupForm.groupname = vl.Username;
-                this.addAuthGroupForm.rule = vl.Rule;
-                this.permission = vl.Permissions;
+                this.addAuthGroupForm = {
+                    username: vl.Username,
+                    group: vl.Group
+                };
+                this.marge_group(vl.Group)
             },
-            singleAdd() {
-                axios.post(`${this.$config.url}/group/update`, {
-                    'username': this.addAuthGroupForm.groupname,
-                    'permission': this.permission
+            marge_group(group) {
+                let g = [];
+                if (group !== null) {
+                    g = group
+                }
+                axios.post(`${this.$config.url}/group/fetch/marge`, {
+                    "user": this.addAuthGroupForm.username,
+                    "group": g,
                 })
                     .then(res => {
-                        this.$config.notice(res.data)
-                        this.$refs.total.currentPage = 1
-                        this.refreshgroup()
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            mulitAdd() {
-                axios.post(`${this.$config.url}/group/m/update`, {
-                    'username': this.more_user,
-                    'permission': this.permission
-                })
-                    .then(res => {
-                        this.$config.notice(res.data)
-                        this.$refs.total.currentPage = 1
-                        this.refreshgroup()
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            saveAddGroup() {
-                if (this.is_more) {
-                    this.mulitAdd()
-                } else {
-                    this.singleAdd()
-                }
-                this.addAuthGroupModal = false
-            },
-            refreshgroup(vl = 1) {
-                axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}`)
-                    .then(res => {
-                        let k = [];
-                        this.data6 = res.data.data;
-                        for (let i of this.data6) {
-                            if (i.Rule === 'guest') {
-                                k.push(i.Username)
-                            }
-                        }
-                        this.more_user = k;
-                        this.pagenumber = parseInt(res.data.page);
-                        this.connectionList.connection = res.data.source;
-                        this.connectionList.query = res.data.query;
-                        this.connectionList.person = res.data.audit;
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            splicpage(page) {
-                this.refreshgroup(page)
-            },
-            ddlCheckAll(name, indeterminate, ty) {
-                this.checkAll[indeterminate] = !this.checkAll[indeterminate]
-                this.indeterminate[indeterminate] = false;
-                if (this.checkAll[indeterminate]) {
-                    if (ty === 'person') {
-                        this.permission[name] = this.connectionList[ty].map(vl => vl.Username);
-                    } else {
-                        this.permission[name] = this.connectionList[ty].map(vl => vl.Source)
-                    }
-                } else {
-                    this.permission[name] = []
-                }
-            },
-            deleteAuthGroup(vl) {
-                axios.delete(`${this.$config.url}/group/del/${vl.Username}`)
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.refreshgroup()
+                        this.permission = res.data;
                     })
                     .catch(err => this.$config.err_notice(this, err))
             },
+            saveAddGroup() {
+                this.addAuthGroupModal = false;
+                axios.post(`${this.$config.url}/group/update`, {
+                    'username': this.addAuthGroupForm.username,
+                    'permission': this.permission,
+                    'group': this.addAuthGroupForm.group,
+                })
+                    .then(res => {
+                        this.$config.notice(res.data);
+                        this.$refs.total.currentPage = 1;
+                        this.fetch_info()
+                    })
+                    .catch(error => {
+                        this.$config.err_notice(this, error)
+                    })
+            },
+            fetch_info(vl = 1) {
+                axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}`)
+                    .then(res => {
+                        this.data6 = res.data.data;
+                        this.group_list = res.data.data2;
+                        this.pagenumber = parseInt(res.data.page);
+                    })
+                    .catch(error => {
+                        this.$config.err_notice(this, error)
+                    })
+            },
             queryData() {
                 this.query.valve = true;
-                this.refreshgroup()
+                this.fetch_info()
             },
             queryCancel() {
                 this.$config.clearObj(this.query);
-                this.refreshgroup()
+                this.fetch_info()
             }
         },
         mounted() {
-            this.refreshgroup()
+            this.fetch_info()
         }
     }
 </script>
