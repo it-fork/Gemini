@@ -63,17 +63,17 @@
           </Select>
         </FormItem>
         <FormItem label="数据源" prop="source">
-          <Select v-model="formItem.source" @on-change="fetchBase">
+          <Select v-model="formItem.source" @on-change="fetchBase" filterable>
             <Option v-for="i in fetchData.source" :key="i.Source" :value="i.Source">{{i.Source}}</Option>
           </Select>
         </FormItem>
         <FormItem label="库" prop="database">
-          <Select v-model="formItem.database" @on-change="fetchTable">
+          <Select v-model="formItem.database" @on-change="fetchTable" filterable>
             <Option v-for="i in fetchData.base" :key="i" :value="i">{{i}}</Option>
           </Select>
         </FormItem>
         <FormItem label="表" prop="table">
-          <Select v-model="formItem.table">
+          <Select v-model="formItem.table" filterable>
             <Option v-for="i in fetchData.table" :key="i" :value="i">{{i}}</Option>
           </Select>
         </FormItem>

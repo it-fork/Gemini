@@ -256,6 +256,7 @@ export const group = {
         },
         batchOpen() {
             this.addAuthGroupModal = true;
+            this.isReadOnly =  false;
             this.addAuthGroupForm.groupname = '';
             this.permission = this.$config.clearOption(this.permission);
             this.refreshgroup();

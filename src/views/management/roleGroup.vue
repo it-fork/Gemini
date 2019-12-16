@@ -25,7 +25,7 @@
                       @on-ok="deleteAuthGroup(row)"
                       transfer
               >
-                <Button type="warning" size="small">清空权限</Button>
+                <Button type="warning" size="small">删除权限组</Button>
               </Poptip>
             </template>
           </Table>
