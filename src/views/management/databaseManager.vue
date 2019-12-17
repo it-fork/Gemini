@@ -125,6 +125,14 @@
                     callback()
                 }
             };
+            const regExp_password = (rule, value, callback) => {
+                let pPattern = new RegExp("[`？?@^$]");
+                if (pPattern.test(this.formItem.password)) {
+                    callback(new Error('密码中不得含有? @ ^ $'))
+                } else {
+                    callback()
+                }
+            };
             return {
                 tableData: [],
                 columns: [
@@ -194,11 +202,17 @@
                         message: '请填写端口',
                         trigger: 'blur'
                     }],
-                    password: [{
-                        required: true,
-                        message: '请填写密码',
-                        trigger: 'blur'
-                    }]
+                    password: [
+                        {
+                            required: true,
+                            message: '请填写密码',
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: regExp_password,
+                            trigger: 'blur'
+                        }
+                    ]
                 },
                 comList: [],
                 pagenumber: 1,

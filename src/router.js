@@ -164,16 +164,16 @@ export const appRouter = [{
         component: resolve => {
           require(['./views/audit/queryAudit.vue'], resolve)
         }
-      },
-      {
-        path: 'perOrder',
-        name: 'perOrder',
-        title: '权限',
-        icon: 'md-share',
-        component: resolve => {
-          require(['./views/audit/permissions.vue'], resolve)
-        }
       }
+      // {
+      //   path: 'perOrder',
+      //   name: 'perOrder',
+      //   title: '权限',
+      //   icon: 'md-share',
+      //   component: resolve => {
+      //     require(['./views/audit/permissions.vue'], resolve)
+      //   }
+      // }
     ]
   },
   {
