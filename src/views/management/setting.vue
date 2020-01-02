@@ -139,7 +139,7 @@
                     <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd1">添加脱敏字段</Button>
                   </FormItem>
                   <Row>
-                    <Col span="8">
+                    <Col span="6">
                       <Form-item label="多级审核:">
                         <i-switch size="large" @on-change="multi_switching" v-model="other.multi">
                           <span slot="open">开</span>
@@ -147,7 +147,7 @@
                         </i-switch>
                       </Form-item>
                     </Col>
-                    <Col span="8">
+                    <Col span="6">
                       <Form-item label="查询审核:">
                         <i-switch size="large" @on-change="multi_query" v-model="other.query">
                           <span slot="open">开</span>
@@ -155,15 +155,21 @@
                         </i-switch>
                       </Form-item>
                     </Col>
-                    <Col span="8">
+                    <Col span="6">
                       <Form-item label="权限申请限制:">
                         <InputNumber :max="10" :min="1" v-model="other.per_order"
                                      :formatter="value => `${value}次/每天`"></InputNumber>
                       </Form-item>
                     </Col>
+                    <Col span="6">
+                      <Form-item label="查询超时时间:">
+                        <InputNumber :max="600" :min="1" v-model="other.query_timeout"
+                                     :formatter="value => `${value}秒`"></InputNumber>
+                      </Form-item>
+                    </Col>
                   </Row>
                   <Row>
-                    <Col span="8">
+                    <Col span="6">
                       <Form-item label="注册:">
                         <i-switch size="large" @on-change="multi_register" v-model="other.register">
                           <span slot="open">开</span>
@@ -171,7 +177,7 @@
                         </i-switch>
                       </Form-item>
                     </Col>
-                    <Col span="8">
+                    <Col span="6">
                       <Form-item label="查询导出:">
                         <i-switch size="large" @on-change="multi_export" v-model="other.export">
                           <span slot="open">开</span>
@@ -179,7 +185,7 @@
                         </i-switch>
                       </Form-item>
                     </Col>
-                    <Col span="8">
+                    <Col span="6">
                       <Form-item label="查询时限:">
                         <InputNumber :max="600" :min="0" v-model="other.ex_query_time"
                                      :formatter="value => `${value}分钟`"></InputNumber>

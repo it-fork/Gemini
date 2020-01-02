@@ -9,7 +9,7 @@
           <br>
           <br>
           <Button @click="back">返回</Button>
-          <Button @click="del">撤销</Button>
+          <Button @click="del" class="margin-left-10">撤销</Button>
         </div>
         <div class="step-content" style="height: 150px">
         </div>
@@ -84,6 +84,7 @@
 </script>
 
 <style lang="less">
+  @import "../../styles/common";
   .step {
     &-header-con {
       text-align: center;

@@ -224,6 +224,24 @@
                               <span slot="close">关</span>
                             </i-switch>
                           </FormItem>
+                          <FormItem label="允许创建视图">
+                            <i-switch size="large" v-model="juno.AllowCreateView">
+                              <span slot="open">开</span>
+                              <span slot="close">关</span>
+                            </i-switch>
+                          </FormItem>
+                          <FormItem label="允许创建分区表">
+                            <i-switch size="large" v-model="juno.AllowCreatePartition">
+                              <span slot="open">开</span>
+                              <span slot="close">关</span>
+                            </i-switch>
+                          </FormItem>
+                          <FormItem label="允许bit,enum,set类型">
+                            <i-switch size="large" v-model="juno.AllowSpecialType">
+                              <span slot="open">开</span>
+                              <span slot="close">关</span>
+                            </i-switch>
+                          </FormItem>
                           <FormItem label="Insert语句字段上限">
                             <InputNumber :min="0" v-model="juno.DMLMaxInsertRows"></InputNumber>
                           </FormItem>

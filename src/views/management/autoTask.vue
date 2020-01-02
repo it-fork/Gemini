@@ -172,7 +172,7 @@
                         })
                             .then(res => {
                                 this.$config.notice(res.data);
-                                this.fetchAutoTaskList();
+                                this.fetchAutoTaskList(this.$refs.page.currentPage);
                             })
                             .catch(err => this.$config.err_notice(this, err))
                     } else {
@@ -210,10 +210,14 @@
                 }
             },
             delAutoTask(vl) {
+                let step = this.$refs.page.currentPage;
+                if (this.task_data.length === 1) {
+                    step = step - 1
+                }
                 axios.delete(`${this.$config.url}/auto/${vl.ID}`)
                     .then(res => {
                         this.$config.notice(res.data);
-                        this.fetchAutoTaskList()
+                        this.fetchAutoTaskList(step)
                     })
                     .catch(err => this.$config.err_notice(this, err))
             },
