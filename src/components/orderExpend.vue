@@ -67,7 +67,8 @@
                     'Page': vl
                 })
                     .then(res => {
-                        this.TableDataNew = res.data
+                        this.TableDataNew = res.data.data;
+                        this.page_number = res.data.count
                     })
                     .catch(error => {
                         this.$config.err_notice(this, error)
