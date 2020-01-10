@@ -287,15 +287,15 @@
                             })
                         } else {
                             this.queryTime = res.data.time;
-                            this.columnsName = res.data['title']
-                            this.allQueryData = res.data['data']
-                            this.queryRes = this.allQueryData.slice(0, 10)
+                            this.columnsName = res.data['title'];
+                            this.allQueryData = res.data['data'];
+                            this.queryRes = this.allQueryData.slice(0, this.page_size);
                             this.total = res.data['data'].length
                         }
                         this.$Spin.hide()
                     })
                     .catch(err => {
-                        this.$config.err_notice(this, err)
+                        this.$config.err_notice(this, err);
                         this.$Spin.hide()
                     })
             }
