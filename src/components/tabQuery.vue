@@ -276,10 +276,8 @@
                             return
                         }
                         if (res.data.data === null) {
-                            this.$Notice.warning({
-                                title: '错误',
-                                desc: '没有查询结果!'
-                            })
+                            this.columnsName = res.data['title'];
+                            this.allQueryData = [];
                         } else if (!res.data['data']) {
                             this.$Notice.warning({
                                 title: '错误',

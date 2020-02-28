@@ -62,7 +62,7 @@
             :closable="false"
             :styles="{top: '20%'}"
             ok-text="同意"
-            @on-ok="statementput"
+            @on-ok="agreement"
     >
       <h3>关于Yearning:</h3>
       <br>
@@ -268,17 +268,17 @@
                     }
                     this.$Notice.config({
                         top: 130
-                    })
+                    });
                     this.$Notice.info({
                         title: greetingWord.title,
                         desc: greetingWord.words,
                         duration: 4,
                         name: 'greeting'
-                    })
+                    });
                     sessionStorage.setItem('hasGreet', 1)
                 }
             },
-            statementput() {
+            agreement() {
                 axios.put(`${this.$config.url}/dash/stmt`)
             },
             beforeunloadFn() {
@@ -287,7 +287,7 @@
         },
         mounted() {
             this.handleChange();
-            this.$store.commit('Breadcrumbset', this.$route.matched[1].name)
+            this.$store.commit('breadcrumb_set', this.$route.matched[1].name)
             this.$store.state.currentPageName = this.$route.matched[1].name
             if (localStorage.getItem('pageOpenedList')) {
                 this.$store.state.pageOpenedList = JSON.parse(localStorage.getItem('pageOpenedList'))
@@ -302,7 +302,7 @@
         },
         created() {
             // 权限菜单过滤相关
-            this.$store.commit('Menulist');
+            this.$store.commit('sidebar_filter');
             this.$store.commit('snippetTagFromJson');
             axios.defaults.headers.common['Authorization'] = sessionStorage.getItem('jwt')
             window.addEventListener('beforeunload', e => this.beforeunloadFn(e))

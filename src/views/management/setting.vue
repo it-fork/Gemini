@@ -155,12 +155,12 @@
                         </i-switch>
                       </Form-item>
                     </Col>
-                    <Col span="6">
-                      <Form-item label="权限申请限制:">
-                        <InputNumber :max="10" :min="1" v-model="other.per_order"
-                                     :formatter="value => `${value}次/每天`"></InputNumber>
-                      </Form-item>
-                    </Col>
+<!--                    <Col span="6">-->
+<!--                      <Form-item label="权限申请限制:">-->
+<!--                        <InputNumber :max="10" :min="1" v-model="other.per_order"-->
+<!--                                     :formatter="value => `${value}次/每天`"></InputNumber>-->
+<!--                      </Form-item>-->
+<!--                    </Col>-->
                     <Col span="6">
                       <Form-item label="查询超时时间:">
                         <InputNumber :max="600" :min="1" v-model="other.query_timeout"

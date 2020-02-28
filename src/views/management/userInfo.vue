@@ -77,25 +77,7 @@
       </Card>
     </Col>
 
-    <Modal v-model="editPasswordForm.modal" :closable='false' :mask-closable=false :width="500">
-      <h3 slot="header" style="color:#2D8CF0">修改用户密码</h3>
-      <Form ref="editPasswordForm" :model="editPasswordForm" :label-width="100" label-position="right"
-            :rules="passwordValidate">
-        <FormItem label="用户名">
-          <Input v-model="username" readonly="readonly"></Input>
-        </FormItem>
-        <FormItem label="新密码" prop="newPass">
-          <Input v-model="editPasswordForm.newPass" placeholder="请输入新密码，至少6位字符" type="password"></Input>
-        </FormItem>
-        <FormItem label="确认新密码" prop="rePass">
-          <Input v-model="editPasswordForm.rePass" placeholder="请再次输入新密码" type="password"></Input>
-        </FormItem>
-      </Form>
-      <div slot="footer">
-        <Button type="text" @click="cancelModal(editPasswordForm)">取消</Button>
-        <Button type="primary" @click="saveEditPass" :loading="savePassLoading">保存</Button>
-      </div>
-    </Modal>
+    <edit_password  :is_open="edit_password" :username="username"  is_admin @cancel="cancel_password"></edit_password>
 
     <Modal v-model="editAuthForm.modal" @on-ok="saveAuthInfo">
       <h3 slot="header" style="color:#2D8CF0">用户信息</h3>
@@ -125,17 +107,14 @@
 </template>
 <script>
     import axios from 'axios'
+    import { user_form} from "../../libs/user_classMixin";
     import '../../styles/tablesmargintop.css'
+    import edit_password from "../../components/edit_password";
 
     export default {
+        mixins: [user_form],
+        components: {edit_password},
         data() {
-            const valideRePassword = (rule, value, callback) => { // eslint-disable-line no-unused-vars
-                if (value !== this.editPasswordForm.newPass) {
-                    callback(new Error('两次输入密码不一致'))
-                } else {
-                    callback()
-                }
-            };
             const valideuserinfoPassword = (rule, value, callback) => {
                 if (value !== this.userinfo.password) {
                     callback(new Error('两次输入密码不一致'))
@@ -300,45 +279,6 @@
                             trigger: 'blur'
                         }]
                 },
-                // 更改密码遮罩层状态
-                editPasswordModal: false,
-                // 更改密码
-                editPasswordForm: {
-                    newPass: '',
-                    rePass: '',
-                    modal: false
-                },
-                // 保存更改密码loding按钮状态
-                savePassLoading: false,
-                // 更改密码表单验证规则
-                passwordValidate: {
-                    newPass: [{
-                        required: true,
-                        message: '请输入新密码',
-                        trigger: 'blur'
-                    },
-                        {
-                            min: 6,
-                            message: '请至少输入6个字符',
-                            trigger: 'blur'
-                        },
-                        {
-                            max: 32,
-                            message: '最多输入32个字符',
-                            trigger: 'blur'
-                        }
-                    ],
-                    rePass: [{
-                        required: true,
-                        message: '请再次输入新密码',
-                        trigger: 'blur'
-                    },
-                        {
-                            validator: valideRePassword,
-                            trigger: 'blur'
-                        }
-                    ]
-                },
                 // 更改部门及权限
                 GroupModal: false,
                 editAuthForm: {
@@ -360,33 +300,11 @@
         methods: {
             editPassModal(row) {
                 this.username = row.Username;
-                this.editPasswordForm.modal = true;
+                this.edit_password = true;
             },
             editAuthModal(row) {
                 this.editAuthForm = this.$config.sameMerge(this.editAuthForm, row, this.editAuthForm);
                 this.editAuthForm.modal = true;
-            },
-            cancelModal(vl) {
-                this.$config.clearObj(vl)
-            },
-            saveEditPass() {
-                this.$refs['editPasswordForm'].validate((valid) => {
-                    if (valid) {
-                        this.savePassLoading = true;
-                        axios.post(`${this.$config.url}/management_user/password_reset`, {
-                            'username': this.username,
-                            'new': this.editPasswordForm.newPass
-                        })
-                            .then(res => {
-                                this.$config.notice(res.data)
-                                this.editPasswordForm.modal = false
-                            })
-                            .catch(error => {
-                                this.$config.err_notice(this, error)
-                            })
-                        this.savePassLoading = false
-                    }
-                })
             },
             saveAuthInfo() {
                 this.savePassLoading = true;

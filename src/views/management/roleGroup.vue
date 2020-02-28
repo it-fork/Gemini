@@ -205,7 +205,7 @@
             refreshgroup(vl = 1) {
                 axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}&tp=1`)
                     .then(res => {
-                        this.data6 = res.data.data2;
+                        this.data6 = res.data.group_list;
                         this.pagenumber = parseInt(res.data.page);
                         this.connectionList.connection = res.data.source;
                         this.connectionList.query = res.data.query;

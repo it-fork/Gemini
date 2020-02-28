@@ -111,7 +111,7 @@
             高频库/Top5
           </p>
           <div class="data-source-row">
-            <Table border :columns="columnsTop5" :data="dataTop5" stripe></Table>
+            <Table border :columns="columnsTop5" :data="count.dataTop5" stripe></Table>
           </div>
         </Card>
       </Col>
@@ -135,73 +135,68 @@
 </template>
 
 <script>
-  import axios from 'axios'
-  import dataSourcePie from '../../components/dataSourcePie.vue'
-  import dataSourceaxis from '../../components/dataSourceAxis'
-  import inforCard from '../../components/inforCard.vue'
-  import userinfomation from '../personalCenter/own-space'
+    import axios from 'axios'
+    import dataSourcePie from '../../components/dataSourcePie.vue'
+    import dataSourceaxis from '../../components/dataSourceAxis'
+    import inforCard from '../../components/inforCard.vue'
+    import userinfomation from '../personalCenter/own-space'
 
-  export default {
-    components: {
-      dataSourcePie,
-      inforCard,
-      dataSourceaxis,
-      userinfomation
+    export default {
+        components: {
+            dataSourcePie,
+            inforCard,
+            dataSourceaxis,
+            userinfomation
 
-    },
-    data () {
-      return {
-        dataTop5: [
-        ],
-        columnsTop5: [
-          {
-            title: '数据库',
-            key: 'DataBase'
-          },
-          {
-            title: '审核工单数',
-            key: 'C'
-          }
-        ],
-        toDoList: [{
-          title: ''
-        }],
-        count: {
-          createUser: 0,
-          order: 0,
-          source: 0,
-          query: 0,
-          ddl: 0,
-          dml: 0
         },
-        newToDoItemValue: '',
-        time: '',
-        username: sessionStorage.getItem('user'),
-        board: {
-          'title': ['1.DDL语句生成', '2.SQL语句审核及回滚', '3.工单流程化', '4.可视化数据查询', '5.细粒度的权限划分']
+        data() {
+            return {
+                columnsTop5: [
+                    {
+                        title: '数据库',
+                        key: 'DataBase'
+                    },
+                    {
+                        title: '审核工单数',
+                        key: 'C'
+                    }
+                ],
+                toDoList: [{
+                    title: ''
+                }],
+                count: {
+                    dataTop5: [],
+                    createUser: 0,
+                    order: 0,
+                    source: 0,
+                    query: 0,
+                    ddl: 0,
+                    dml: 0
+                },
+                newToDoItemValue: '',
+                time: '',
+                username: sessionStorage.getItem('user'),
+                board: {
+                    'title': ['1.DDL语句生成', '2.SQL语句审核及回滚', '3.工单流程化', '4.可视化数据查询', '5.细粒度的权限划分']
+                }
+            }
+        },
+        methods: {
+            formatDate() {
+                let date = new Date();
+                let month = date.getMonth() + 1;
+                this.time = date.getFullYear() + '/' + month + '/' + date.getDate() + '  ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds()
+            }
+        },
+        mounted() {
+            axios.get(`${this.$config.url}/dash/count`)
+                .then(res => {
+                    this.count = res.data;
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                });
+            this.formatDate()
         }
-      }
-    },
-    methods: {
-      formatDate () {
-        let date = new Date();
-        let month = date.getMonth() + 1;
-        this.time = date.getFullYear() + '/' + month + '/' + date.getDate() + '  ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds()
-      }
-    },
-    mounted () {
-      axios.get(`${this.$config.url}/dash/count`)
-        .then(res => {
-          this.count.createUser = res.data.u;
-          this.count.order = res.data.o;
-          this.count.source = res.data.s;
-          this.count.query = res.data.q;
-          this.dataTop5 = res.data.top;
-        })
-        .catch(error => {
-          this.$config.err_notice(this, error)
-        })
-      this.formatDate()
     }
-  }
 </script>

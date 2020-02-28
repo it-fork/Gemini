@@ -26,30 +26,13 @@
         <FormItem label="邮箱：">
           <span>{{ userForm.Email }}</span>
         </FormItem>
-        <Button type="warning" size="small" @click="editPasswordModal=true">修改密码</Button>
+        <Button type="warning" size="small" @click="edit_password=true">修改密码</Button>
         <Button type="primary" size="small" @click="openMailChange" class="margin-left-10">修改邮箱/真实姓名</Button>
         <Button type="success" size="small" @click="openPerChange" class="margin-left-10">查看权限</Button>
       </Form>
     </div>
 
-    <Modal v-model="editPasswordModal" :closable='false' :mask-closable=false :width="500">
-      <h3 slot="header" style="color:#2D8CF0">修改密码</h3>
-      <Form ref="editPasswordForm" :model="editPasswordForm" :label-width="100" label-position="right"
-            :rules="passwordValidate">
-        <FormItem label="新密码" prop="newPass">
-          <Input v-model="editPasswordForm.newPass" placeholder="请输入新密码，至少6位字符" type="password"></Input>
-        </FormItem>
-        <FormItem label="确认新密码" prop="rePass">
-          <Input v-model="editPasswordForm.rePass" placeholder="请再次输入新密码" type="password"></Input>
-        </FormItem>
-      </Form>
-      <div slot="footer">
-        <Button type="text" @click="editPasswordModal=false">取消</Button>
-        <Button type="primary" :loading="savePassLoading" @click="saveEditPass">保存</Button>
-      </div>
-    </Modal>
-
-    <Modal v-model="editEmailModal" :closable='false' :mask-closable=false :width="500">
+    <Modal v-model="editEmailModal" :width="500" @on-ok="saveEmail">
       <h3 slot="header" style="color:#2D8CF0">邮箱/真实姓名修改</h3>
       <Form :label-width="100" label-position="right">
         <FormItem label="邮箱地址">
@@ -59,226 +42,68 @@
           <Input v-model="editEmailForm.RealName"></Input>
         </FormItem>
       </Form>
-      <div slot="footer">
-        <Button type="text" @click="editEmailModal=false">取消</Button>
-        <Button type="primary" :loading="savePassLoading" @click="saveEmail">保存</Button>
-      </div>
     </Modal>
 
-    <Modal v-model="editInfoModal" width="700">
-      <h3 slot="header" style="color:#2D8CF0">用户权限信息</h3>
-      <Form  label-position="top">
-        <Divider orientation="left">DDL权限</Divider>
-        <FormItem label="DDL及索引权限:">
-          <Tag v-if="permission.ddl==='1'" color="success">是</Tag>
-          <Tag v-else color="volcano">否</Tag>
-        </FormItem>
-        <FormItem label="可访问的连接名:" v-if="permission.ddl === '1'">
-          <Tag color="purple" v-for="i in permission.ddl_source" :key="i"> {{i}}</Tag>
-        </FormItem>
-        <Divider orientation="left">DML权限</Divider>
-        <FormItem label="DML是否可见:">
-          <Tag v-if="permission.dml==='1'" color="success">是</Tag>
-          <Tag v-else color="volcano">否</Tag>
-        </FormItem>
-        <FormItem label="可访问的连接名:" v-if="permission.dml === '1'">
-          <Tag color="geekblue" v-for="i in permission.dml_source" :key="i"> {{i}}</Tag>
-        </FormItem>
-        <Divider orientation="left">查询权限</Divider>
-        <FormItem label="查询是否可见:">
-          <Tag v-if="permission.query==='1'" color="success">是</Tag>
-          <Tag v-else color="volcano">否</Tag>
-        </FormItem>
-        <FormItem label="可访问的连接名:" v-if="permission.query === '1'">
-          <Tag color="blue" v-for="i in permission.query_source" :key="i"> {{i}}</Tag>
-        </FormItem>
-        <Divider orientation="left">上级审核人</Divider>
-        <FormItem>
-          <Tag color="cyan" v-for="i in permission.auditor" :key="i"> {{i}}</Tag>
-        </FormItem>
-        <Divider orientation="left">管理权限</Divider>
-        <FormItem label="用户管理权限:">
-          <Tag v-if="permission.user==='1'" color="success">是</Tag>
-          <Tag v-else color="volcano">否</Tag>
-        </FormItem>
-        <FormItem label="数据库管理权限:">
-          <Tag v-if="permission.base==='1'" color="success">是</Tag>
-          <Tag v-else color="volcano">否</Tag>
-        </FormItem>
-      </Form>
-<!--      <div slot="footer">-->
-<!--        <Button type="warning" @click="editInfoModal=false">取消</Button>-->
-<!--        <Button type="success" @click="referRuleOrder" class="margin-left-10">申请权限</Button>-->
-<!--      </div>-->
-    </Modal>
+    <edit_rule :is_open="is_open" :username="userForm.Username" :group_list="group_list"
+               :group_props="group_props" @cancel="cancel"></edit_rule>
+    <edit_password :is_open="edit_password" :username="userForm.Username" @cancel="cancel_password"></edit_password>
   </div>
 </template>
 
 <script>
-    //
-
     import axios from 'axios'
+    import {about_rule,user_form} from "../../libs/user_classMixin";
+    import edit_password from "../../components/edit_password";
+    import edit_rule from "../../components/edit_rule";
 
     export default {
         name: 'own-space',
+        mixins: [about_rule,user_form],
+        components: {edit_password, edit_rule},
         data() {
-            const valideRePassword = (rule, value, callback) => {
-                if (value !== this.editPasswordForm.newPass) {
-                    callback(new Error('两次输入密码不一致'))
-                } else {
-                    callback()
-                }
-            }
             return {
-                query_list: [],
                 editEmailModal: false,
                 editEmailForm: {
                     mail: '',
                     real_name: ''
                 },
-                userForm: Object,
-                formItem: {
-                    ddl: '',
-                    ddlcon: ''
-                },
-                uid: '', // 登录用户的userId
-                save_loading: false,
-                editPasswordModal: false, // 修改密码模态框显示
-                savePassLoading: false,
-                oldPassError: '',
-                checkIdentifyCodeLoading: false,
-                editPasswordForm: {
-                    newPass: '',
-                    rePass: ''
-                },
-                passwordValidate: {
-                    oldPass: [
-                        {
-                            required: true,
-                            message: '请输入原密码',
-                            trigger: 'blur'
-                        }
-                    ],
-                    newPass: [
-                        {
-                            required: true,
-                            message: '请输入新密码',
-                            trigger: 'blur'
-                        },
-                        {
-                            min: 6,
-                            message: '请至少输入6个字符',
-                            trigger: 'blur'
-                        },
-                        {
-                            max: 32,
-                            message: '最多输入32个字符',
-                            trigger: 'blur'
-                        }
-                    ],
-                    rePass: [{
-                        required: true,
-                        message: '请再次输入新密码',
-                        trigger: 'blur'
-                    },
-                        {
-                            validator: valideRePassword,
-                            trigger: 'blur'
-                        }
-                    ]
-                },
-                editInfoModal: false,
-                permission: {
-                    ddl: '0',
-                    ddlcon: Array,
-                    dml: '0',
-                    dmlcon: Array,
-                    query: '0',
-                    querycon: Array,
-                    index: '0',
-                    indexcon: Array,
-                    user: '0',
-                    base: '0',
-                    auditor: []
-                },
-                permission_list: Object,
-                connectionList: {},
-                auditor: []
+                userForm: Object
             }
         },
         methods: {
-            referRuleOrder() {
-                axios.post(`${this.$config.url}/dash/refer`, {
-                    'Permission': this.permission
-                })
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.editInfoModal = false
-                    })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
             openMailChange() {
-                this.editEmailModal = true
+                this.editEmailModal = true;
                 this.editEmailForm = this.userForm
             },
             openPerChange() {
-                this.editInfoModal = true
-            },
-            saveEditPass() {
-                this.$refs['editPasswordForm'].validate((valid) => {
-                    if (valid) {
-                        this.savePassLoading = true
-                        axios.post(`${this.$config.url}/user/password_reset`, {
-                            'username': this.userForm.username,
-                            'new': this.editPasswordForm.newPass
-                        })
-                            .then(res => {
-                                this.$config.notice(res.data);
-                                this.editPasswordModal = false
-                            })
-                            .catch(error => {
-                                this.$config.err_notice(this, error)
-                            })
-                        this.savePassLoading = false
-                    }
-                })
-                for (let i in this.editPasswordForm) {
-                    this.editPasswordForm[i] = ''
-                }
+                this.is_open = true
             },
             saveEmail() {
-                this.savePassLoading = true;
                 axios.post(`${this.$config.url}/user/mail_reset`, {
                     'mail': this.editEmailForm.Email,
                     'username': this.userForm.UserName,
                     'real': this.editEmailForm.RealName
                 })
                     .then(res => {
-                        this.$config.notice(res.data)
-                        this.editEmailModal = false
+                        this.$config.notice(res.data);
                         sessionStorage.setItem('real_name', this.editEmailForm.real_name)
                     })
                     .catch(error => {
                         this.$config.err_notice(this, error)
                     });
-                this.savePassLoading = false
             },
             init() {
                 axios.put(`${this.$config.url}/dash/userinfo`)
                     .then(res => {
                         this.userForm = res.data.u;
-                        this.permission = res.data.p;
-                        this.permission.auditor = ['admin'];
-                        this.connectionList = res.data.source;
-                        this.query_list = res.data.query;
-                        this.auditor = res.data.au;
-                        if (res.data.s.Stmt === 0) {
-                            this.$store.state.stmt = true
-                        } else {
-                            this.$store.state.stmt = false
-                        }
+                        this.group_props = res.data.p;
+                        this.group_list = res.data.g;
+                        this.$store.state.stmt = res.data.s.Stmt === 0;
                     })
-            }
+            },
+            cancel() {
+                this.is_open = false;
+            },
         },
         mounted() {
             this.init()

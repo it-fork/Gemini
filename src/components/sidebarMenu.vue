@@ -31,6 +31,10 @@
           </template>
         </Submenu>
       </template>
+      <Menu-item name="board">
+        <Icon type="md-clipboard" :size="iconSize"></Icon>
+        <span class="layout-text">公告</span>
+      </Menu-item>
       <Menu-item name="login">
         <Icon type="md-log-out" :size="iconSize"></Icon>
         <span class="layout-text">退出</span>
@@ -39,7 +43,7 @@
   </div>
 </template>
 <script>
-    import util from '../libs/util'
+    import libs from '../libs/libs'
     import axios from 'axios'
 
     export default {
@@ -85,7 +89,7 @@
                         name: 'login'
                     })
                 } else {
-                    util.openPage(this, val)
+                    libs.openPage(this, val)
                 }
             }
         },
