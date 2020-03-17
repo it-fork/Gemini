@@ -6,7 +6,7 @@
         <Input v-model="username" readonly></Input>
       </FormItem>
       <FormItem label="权限组" v-show="is_admin">
-        <Select v-model="group" @on-change="marge_group" clearable multiple>
+        <Select v-model="group" @on-change="marge_group" clearable multiple filterable>
           <Option v-for=" i in group_list" :key="i.Name" :value="i.Name" :label="i.Name"></Option>
         </Select>
       </FormItem>
