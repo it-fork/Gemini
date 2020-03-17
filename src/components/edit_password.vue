@@ -97,7 +97,7 @@
                             url = `management_user/password_reset`
                         }
                         axios.post(`${this.$config.url}/${url}`, {
-                            'username': this.form.username,
+                            'username': this.username,
                             'new': this.form.password
                         })
                             .then(res => {
