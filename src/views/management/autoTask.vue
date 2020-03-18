@@ -36,14 +36,14 @@
             </i-switch>
           </template>
           <template slot-scope="{ row }" slot="action">
-            <Button type="primary" @click="openEditModal(row)">编辑</Button>
+            <Button type="primary" @click="openEditModal(row)" size="small">编辑</Button>
             <Poptip
                     confirm
                     title="确定要删除吗？"
                     @on-ok="delAutoTask(row)"
                     transfer
             >
-              <Button type="error" class="margin-left-10">删除</Button>
+              <Button type="error" class="margin-left-10" size="small">删除</Button>
             </Poptip>
           </template>
         </Table>

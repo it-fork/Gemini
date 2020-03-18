@@ -15,7 +15,7 @@
                     <img src="../../assets/circle.svg" class="card-img-absolute " alt="circle-image"/>
                     <Col span="11">
                       <Icon type="md-person-add" size="40"/>
-                      <h1>平台用户数</h1>
+                      <h1>用户数</h1>
                     </Col>
                     <Col span="8" offset="5">
                       <infor-card id-name="transfer_count0" :end-val="count.createUser"></infor-card>

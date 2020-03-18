@@ -13,15 +13,6 @@
           <Col span="24">
             <Form inline>
               <FormItem>
-                <Poptip
-                        confirm
-                        title="您确认删除这些工单信息吗?"
-                        @on-ok="delrecordData"
-                >
-                  <Button type="warning">删除记录</Button>
-                </Poptip>
-              </FormItem>
-              <FormItem>
                 <Input placeholder="账号名" v-model="find.user"></Input>
               </FormItem>
               <FormItem>
@@ -35,8 +26,7 @@
                 <Button type="info" @click="queryQuickCancel" class="margin-left-10">全部中止</Button>
               </FormItem>
             </Form>
-            <Table border :columns="permissoncolums" :data="query_info" stripe ref="selection"
-                   @on-selection-change="delrecordList">
+            <Table border :columns="columns" :data="query_info" stripe>
               <template slot-scope="{ row }" slot="action">
                 <Button type="error" size="small" @click="stop_query(row)" v-if="row.QueryPer === 1" ghost>中止查询</Button>
                 <Button type="error" @click="reject(row)" v-if="row.QueryPer === 2" ghost size="small">驳回</Button>
@@ -62,12 +52,7 @@
         data() {
             return {
                 query_info: [],
-                permissoncolums: [
-                    {
-                        type: 'selection',
-                        width: 60,
-                        align: 'center'
-                    },
+                columns: [
                     {
                         title: '申请编号',
                         key: 'WorkId'
@@ -129,9 +114,6 @@
                     }
                 ],
                 per_pn: 1,
-                delrecord: [],
-                editInfodModal: false,
-                query: {},
                 find: {
                     picker: [],
                     user: '',
@@ -164,29 +146,10 @@
                         this.$config.err_notice(this, error)
                     })
             },
-            delrecordData() {
-                axios.put(`${this.$config.url}/audit/query/clear`, {'WorkId': this.delrecord})
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.$refs.perpage.currentPage = 1;
-                        this.permisson_list()
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            delrecordList(vl) {
-                this.delrecord = vl.map(vl => vl.WorkId)
-            },
-            modalinfo(vl) {
-                this.editInfodModal = true
-                this.query = vl
-            },
             savedata(row) {
                 axios.post(`${this.$config.url}/audit/query/agreed`, {'WorkId': row.WorkId})
                     .then(res => {
                         this.$config.notice(res.data);
-                        this.editInfodModal = false;
                         this.$refs.perpage.currentPage = 1;
                         this.permisson_list()
                     })
@@ -198,7 +161,6 @@
                 axios.post(`${this.$config.url}/audit/query/disagreed`, {'WorkId': row.WorkId})
                     .then(res => {
                         this.$config.notice(res.data)
-                        this.editInfodModal = false
                         this.$refs.perpage.currentPage = 1
                         this.permisson_list()
                     })

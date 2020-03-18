@@ -58,15 +58,6 @@
           <Col span="24">
             <Form inline>
               <FormItem>
-                <Poptip
-                        confirm
-                        title="您确认删除这些工单信息吗?"
-                        @on-ok="delrecordData"
-                >
-                  <Button type="warning">删除记录</Button>
-                </Poptip>
-              </FormItem>
-              <FormItem>
                 <Poptip trigger="hover" title="提示" content="此开关用于打开实时表格数据更新功能">
                   <i-switch v-model="valve" @on-change="refreshForm" size="large">
                     <span slot="open">打开</span>
@@ -87,8 +78,7 @@
                 <Button type="primary" @click="queryCancel" class="margin-left-10">重置</Button>
               </FormItem>
             </Form>
-            <Table border :columns="columns" :data="tableData" stripe ref="selection"
-                   @on-selection-change="delrecordList">
+            <Table border :columns="columns" :data="tableData" stripe>
               <template slot-scope="{ row }" slot="action">
                 <div v-if="row.Status !== 5 || auth==='perform'">
                   <Button type="primary" @click="openOrder(row)" size="small" ghost
@@ -272,12 +262,6 @@
                 ],
                 columns: [
                     {
-                        type: 'selection',
-                        width: 60,
-                        align: 'center',
-                        fixed: 'left'
-                    },
-                    {
                         title: '工单编号:',
                         key: 'WorkId',
                         sortable: true,
@@ -373,7 +357,6 @@
                 },
                 tableData: [],
                 pagenumber: 1,
-                delrecord: [],
                 callback_time: null,
                 switch_show: true,
                 multi: Boolean,
@@ -571,27 +554,6 @@
                         this.$config.err_notice(this, error)
                     })
             },
-            delrecordList(vl) {
-                this.delrecord = vl
-            },
-            delrecordData() {
-                let step = this.$refs.page.currentPage
-                if (this.tableData.length === this.delrecord.length && step !== 1) {
-                    step = step - 1
-                }
-                axios.post(`${this.$config.url}/audit/undo`, {
-                    'u': this.delrecord = this.delrecord.map(function (w) {
-                        return w.WorkId
-                    })
-                })
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.refreshData(step)
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
             refreshForm(vl) {
                 if (vl) {
                     let vm = this;
@@ -613,7 +575,7 @@
             }
         },
         mounted() {
-            this.refreshData()
+            this.refreshData();
             this.refreshForm(this.valve)
         },
         destroyed() {

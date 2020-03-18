@@ -18,8 +18,14 @@
               <Card>
                 <p slot="title">消息推送</p>
                 <Form :label-width="120">
-                  <FormItem label="钉钉webhook:">
-                    <Input placeholder="此webhook只用于查询工单,权限工单的消息推送。" v-model="message.web_hook"></Input>
+                  <FormItem label="webhook地址:">
+                    <Input placeholder="支持钉钉/企业微信 webhook机器人" v-model="message.web_hook"></Input>
+                  </FormItem>
+                  <FormItem label="webhook类型:">
+                    <i-switch size="large" v-model="message.push_type">
+                      <span slot="open">微信</span>
+                      <span slot="close">钉钉</span>
+                    </i-switch>
                   </FormItem>
                   <FormItem label="邮件SMTP服务地址:">
                     <Input placeholder="STMP服务 地址" v-model="message.host"></Input>
@@ -73,11 +79,11 @@
                     <Input placeholder="请填写管理员密码" v-model="ldap.password" type="password"></Input>
                   </FormItem>
                   <FormItem label="LDAP_Search filter:">
-                      <Select v-model="ldap.type">
-                        <Option :value=1>sAMAccountName</Option>
-                        <Option :value=2>uid</Option>
-                        <Option :value=3>cn</Option>
-                      </Select>
+                    <Select v-model="ldap.type">
+                      <Option :value=1>sAMAccountName</Option>
+                      <Option :value=2>uid</Option>
+                      <Option :value=3>cn</Option>
+                    </Select>
                   </FormItem>
                   <FormItem label="LDAP_SCBASE:">
                     <Input placeholder="LDAP Search Base" v-model="ldap.sc"></Input>
@@ -89,7 +95,12 @@
               <Alert style="margin-left: 5%" type="info" show-icon>
                 注意事项：
                 <template slot="desc">
-                  1.LDAP登录用户名，必须全局唯一。
+                  1.LDAP登录用户名，必须全局唯一。ldap配置请参考Grafana。
+                  <br>
+                  2.由于各个邮件服务提供商对于垃圾邮件过滤的机制各不相同，可能会造成邮件无法接收的情况。所以使用前请测试是否稳定。对于使用了ssl安全协议的stmp连接需勾选启动ssl端口复选框
+                  <br>
+                  3.只有开启相应的消息推送开关后，消息推送才会开启。
+                  <br>
                 </template>
               </Alert>
             </Col>
@@ -119,7 +130,7 @@
                     </Tag>
                     <br>
                     <Input placeholder="环境名称" v-model="other.foce" style="width: 30%"></Input>
-                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd">添加环境</Button>
+                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd"  class="margin-left-10">添加环境</Button>
                   </FormItem>
                   <FormItem label="排除数据库:">
                     <Tag v-for="v in other.exclude_db_list" :key="v" :name="v" type="border" closable color="blue"
@@ -127,7 +138,7 @@
                     </Tag>
                     <br>
                     <Input placeholder="排除数据库" v-model="other.exclued_db" style="width: 30%"></Input>
-                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd_exclued_db">添加排除数据库
+                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd_exclued_db" class="margin-left-10">添加排除数据库
                     </Button>
                   </FormItem>
                   <FormItem label="脱敏字段:">
@@ -136,7 +147,7 @@
                     </Tag>
                     <br>
                     <Input placeholder="脱敏字段设置" v-model="other.sensitive" style="width: 30%"></Input>
-                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd1">添加脱敏字段</Button>
+                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd1"  class="margin-left-10">添加脱敏字段</Button>
                   </FormItem>
                   <Row>
                     <Col span="6">
@@ -155,12 +166,6 @@
                         </i-switch>
                       </Form-item>
                     </Col>
-<!--                    <Col span="6">-->
-<!--                      <Form-item label="权限申请限制:">-->
-<!--                        <InputNumber :max="10" :min="1" v-model="other.per_order"-->
-<!--                                     :formatter="value => `${value}次/每天`"></InputNumber>-->
-<!--                      </Form-item>-->
-<!--                    </Col>-->
                     <Col span="6">
                       <Form-item label="查询超时时间:">
                         <InputNumber :max="600" :min="1" v-model="other.query_timeout"
@@ -196,20 +201,46 @@
               </Card>
             </Col>
             <Col span="12">
+              <Row>
+                <Card style="margin-left: 5%">
+                  <p slot="title">超级管理员特权</p>
+                  <Form :label-width="160">
+                    <FormItem label="删除指定日期前的工单记录">
+                      <DatePicker format="yyyy-MM-dd HH:mm" type="datetime" placeholder="选择时间点"
+                                  v-model="other.overdue" @on-change="other.overdue=$event"
+                                  :editable="false"></DatePicker>
+                      <Poptip
+                              confirm
+                              title="确定要删除工单记录吗?"
+                              @on-ok="del_order">
+                        <Button style="margin-left: 10%" type="primary">删除</Button>
+                      </Poptip>
+                    </FormItem>
+                    <FormItem label="删除指定日期前的查询记录">
+                      <DatePicker format="yyyy-MM-dd HH:mm" type="datetime" placeholder="选择时间点"
+                                  v-model="other.query_expire" @on-change="other.query_expire=$event"
+                                  :editable="false"></DatePicker>
+                      <Poptip
+                              confirm
+                              title="确定要删除查询记录吗?"
+                              @on-ok="del_query">
+                        <Button style="margin-left: 10%" type="primary">删除</Button>
+                      </Poptip>
+                    </FormItem>
+                  </Form>
+                </Card>
+              </Row>
+              <br>
               <Alert style="margin-left: 5%" type="warning" show-icon>
                 注意事项：
                 <template slot="desc">
-                  1.由于各个邮件服务提供商对于垃圾邮件过滤的机制各不相同，可能会造成邮件无法接收的情况。所以使用前请测试是否稳定。
+                  1.设置最大Limit数后，所有的查询语句的查询结果都不会超过这个数值。
                   <br>
-                  2.只有开启相应的消息推送开关后，消息推送才会开启。
+                  2.开启多级审核开关后,用户组将新增执行人角色，只有执行人角色的用户才能最终执行工单。关闭后执行人角色用户将全部更改为使用者
                   <br>
-                  3.设置最大Limit数后，所有的查询语句的查询结果都不会超过这个数值。
+                  3.查询审核开关开启后，所有的查询都必须通过管理员同意才能进行。关闭则可自主查询
                   <br>
-                  4.开启多级审核开关后,用户组将新增执行人角色，只有执行人角色的用户才能最终执行工单。关闭后执行人角色用户将全部更改为使用者
-                  <br>
-                  5.查询审核开关开启后，所有的查询都必须通过管理员同意才能进行。关闭则可自主查询
-                  <br>
-                  6.设置脱敏字段后，查询时如匹配到对应字段则该字段将只会以******显示
+                  4.设置脱敏字段后，查询时如匹配到对应字段则该字段将只会以******显示
                 </template>
               </Alert>
               <Button style="margin-left: 5%;width: 95%" type="primary" @click="save_upload">保存</Button>
@@ -230,7 +261,7 @@
         data() {
             return {
                 ldap: Object,
-                message: Object,
+                message: {},
                 other: {
                     limit: 0,
                     per_order: 0
@@ -238,6 +269,20 @@
             }
         },
         methods: {
+            del_order() {
+                axios.post(`${this.$config.url}/group/setting/del/order`, {
+                    date: this.other.overdue
+                })
+                    .then(res => this.$config.notice(res.data))
+                    .catch(err => this.$config.err_notice(this, err))
+            },
+            del_query() {
+                axios.post(`${this.$config.url}/group/setting/del/query`, {
+                    date: this.other.query_expire
+                })
+                    .then(res => this.$config.notice(res.data))
+                    .catch(err => this.$config.err_notice(this, err))
+            },
             handleAdd() {
                 for (let i of this.other.idc) {
                     if (i === this.other.foce) {
@@ -266,7 +311,7 @@
                         return
                     }
                 }
-                this.other.exclude_db_list.push(this.other.exclued_db)
+                this.other.exclude_db_list.push(this.other.exclued_db);
                 this.other.exclued_db = ''
             },
             handleClose2(event, name) {
