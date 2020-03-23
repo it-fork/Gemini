@@ -31,114 +31,108 @@
           </Col>
         </Row>
         <br>
-        <Page :total="page_number" show-elevator @on-change="currentpage" :page-size="20"></Page>
+        <Page :total="page_number" show-elevator @on-change="current_page" :page-size="20"></Page>
       </Card>
     </Row>
   </div>
 </template>
-<script>
+<script lang="ts">
     import axios from 'axios';
+    import {Component, Mixins} from "vue-property-decorator";
+    import att_mixins from "@/mixins/att";
 
-    export default {
-        name: 'put',
-        data() {
-            return {
-                columns: [
-                    {
-                        title: '工单编号:',
-                        key: 'WorkId',
-                        sortable: true
-                    },
-                    {
-                        title: '查询人',
-                        key: 'Username'
-                    },
-                    {
-                        title: '查询人姓名',
-                        key: 'Realname'
-                    },
-                    {
-                        title: '工单说明',
-                        key: 'Text'
-                    },
-                    {
-                        title: '提交时间:',
-                        key: 'Date',
-                        sortable: true
-                    },
-                    {
-                        title: '操作',
-                        key: 'action',
-                        align: 'center',
-                        render: (h, params) => {
-                            return h('div', [
-                                h(
-                                    'Button',
-                                    {
-                                        props: {
-                                            size: 'small',
-                                            type: 'text'
-                                        },
-                                        on: {
-                                            click: () => {
-                                                this.$router.push({
-                                                    name: 'querylist',
-                                                    query: {
-                                                        workid: params.row.WorkId,
-                                                        user: params.row.Username
-                                                    }
-                                                });
+    @Component({components: {}})
+    export default class query_record extends Mixins(att_mixins) {
+        columns = [
+            {
+                title: '工单编号:',
+                key: 'WorkId',
+                sortable: true
+            },
+            {
+                title: '查询人',
+                key: 'Username'
+            },
+            {
+                title: '查询人姓名',
+                key: 'Realname'
+            },
+            {
+                title: '工单说明',
+                key: 'Text'
+            },
+            {
+                title: '提交时间:',
+                key: 'Date',
+                sortable: true
+            },
+            {
+                title: '操作',
+                key: 'action',
+                align: 'center',
+                render: (h: any, params: { row: { WorkId: string, Username: string } }) => {
+                    return h('div', [
+                        h(
+                            'Button',
+                            {
+                                props: {
+                                    size: 'small',
+                                    type: 'text'
+                                },
+                                on: {
+                                    click: () => {
+                                        this.$router.push({
+                                            name: 'query_review',
+                                            query: {
+                                                workid: params.row.WorkId,
+                                                user: params.row.Username
                                             }
-                                        }
-                                    },
-                                    '详细信息'
-                                )
-                            ]);
-                        }
-                    }
-                ],
-                page_number: 1,
-                computer_room: this.$config.computer_room,
-                table_data: [],
-                find: {
-                    picker: [],
-                    text: '',
-                    valve: false
+                                        });
+                                    }
+                                }
+                            },
+                            '详细信息'
+                        )
+                    ]);
                 }
-            };
-        },
-        methods: {
-            query_empty() {
-                axios.delete(`${this.$config.url}/audit/query/empty`)
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.currentpage()
-                    })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            currentpage(vl = 1) {
-                axios.put(`${this.$config.url}/audit/query/fetch/record`, {
-                    page: vl,
-                    find: this.find
-                })
-                    .then(res => {
-                        [this.table_data, this.page_number] = [res.data.data, res.data.page];
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error);
-                    });
-            },
-            queryData() {
-                this.find.valve = true
-                this.currentpage()
-            },
-            queryCancel() {
-                this.find = this.$config.clearPicker(this.find)
-                this.currentpage()
             }
-        },
-        mounted() {
-            this.currentpage();
+        ];
+        table_data = [];
+
+        query_empty() {
+            axios.delete(`${this.$config.url}/audit/query/empty`)
+                .then(res => {
+                    this.$config.notice(res.data);
+                    this.current_page()
+                })
+                .catch(err => this.$config.err_notice(this, err))
         }
-    };
+
+        current_page(vl = 1) {
+            axios.put(`${this.$config.url}/audit/query/fetch/record`, {
+                page: vl,
+                find: this.find
+            })
+                .then(res => {
+                    [this.table_data, this.page_number] = [res.data.data, res.data.page];
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error);
+                });
+        }
+
+        queryData() {
+            this.find.valve = true;
+            this.current_page()
+        }
+
+        queryCancel() {
+            this.find = this.$config.clearPicker(this.find);
+            this.current_page()
+        }
+
+        mounted() {
+            this.current_page();
+        }
+    }
 </script>

@@ -18,7 +18,7 @@
                    style="background: #5cadff"
                    size="large"></Table>
             <br>
-            <Page :total="page_number" show-elevator @on-change="currentpage" :page-size="20"
+            <Page :total="page_number" show-elevator @on-change="current_page" :page-size="20"
                   ref="page"></Page>
           </Col>
         </Row>
@@ -73,18 +73,48 @@
   </div>
 </template>
 
-<script>
-    import detail_mixins from "../mixins/detail_mixin";
+<script lang="ts">
+    import detail_mixins from "@/mixins/detail_mixin";
     import {Component, Vue} from "vue-property-decorator";
 
-    @Component({components: {}, mixins: [detail_mixins]})
-    export default class my_order_list extends Vue {
+    @Component({components: {},mixins:[detail_mixins]})
+    export default class mobile_detail extends Vue {
+        columns =  [
+            {
+                title: 'sql语句',
+                key: 'SQL',
+                width: 200,
+                fixed: 'left'
+
+            },
+            {
+                title: '状态',
+                key: 'State',
+                width: 120,
+            },
+            {
+                title: '错误信息',
+                key: 'Error',
+                tooltip: true,
+                width: 200,
+            },
+            {
+                title: '影响行数',
+                key: 'Affectrow',
+                width: 150
+            },
+            {
+                title: '执行时间/秒',
+                key: 'Time',
+                width: 150
+            }
+        ];
     }
 </script>
 
 <style lang="less">
-  @import '../styles/common.less';
-  @import '../styles/table.less';
+  @import '../../styles/common.less';
+  @import '../../styles/table.less';
 
   .top {
     padding: 10px;

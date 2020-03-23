@@ -1,18 +1,3 @@
-<style lang="less">
-  @import "../../styles/common.less";
-  @import "../../styles/table.less";
-
-  .tree {
-    word-wrap: break-word;
-    word-break: break-all;
-    /*overflow-y: scroll;*/
-    /*overflow-x: scroll;*/
-    overflow: scroll;
-    max-width: 600px;
-    height: 600px;
-  }
-</style>
-
 <template>
   <div>
     <Row>
@@ -26,7 +11,7 @@
             <div id="showImage" class="margin-bottom-10">
               <div>
                 <Tree
-                        :data="data1"
+                        :data="tree_data"
                         @on-toggle-expand="choseName"
                         @on-select-change="getTable"
                         @empty-text="数据加载中"
@@ -140,224 +125,227 @@
 
   </div>
 </template>
-<script>
-    import {fetchSth, order} from "../../libs/mixin";
+<script lang="ts">
     import axios from 'axios'
-    import tabQuery from '../../components/tabQuery'
-    import editor from '../../components/editor'
+    import tabQuery from '@/components/tabQuery.vue'
+    import editor from "@/components/editor.vue";
+    import {Component, Mixins,Prop} from "vue-property-decorator";
+    import fetch_mixin from "@/mixins/fetch_mixin";
+    import order_mixin from "@/mixins/order_mixin";
 
-    export default {
-        mixins: [fetchSth, order],
-        components: {
-            editor: editor,
-            tabQuery
-        },
-        name: 'SearchSQL',
-        props: {
-            source: String
-        },
-        data() {
-            return {
-                slider2: 19,
-                currentTab: '查询1',
-                tableInfoName: '',
-                testRes: [],
-                loading: false,
-                drawer: {
-                    open: false
-                },
-                formItem: {
-                    textarea: '',
-                    backup: 0,
-                    text: '',
-                    idc: '',
-                    source: ''
-                },
-                data1: [],
-                validate_gen: true,
-                put_info: {
-                    base: '',
-                    tablename: ''
-                },
-                export_data: false,
-                wordList: [],
-                tabs: 1,
-                showTableinfo: true
+    @Component({components: {editor, tabQuery}})
+    export default class query_sql extends Mixins(fetch_mixin, order_mixin) {
+        slider2 = 19;
+        currentTab = '查询1';
+        tableInfoName = '';
+        testRes = [] as any;
+        loading = false;
+        drawer = {
+            open: false
+        };
+        tree_data = [] as any;
+        validate_gen = true;
+        put_info = {
+            base: '',
+            tablename: ''
+        };
+        export_data = false;
+        tabs = 1;
+        showTableinfo = true;
+
+        @Prop({
+            type: String,
+            required: true,
+            default: ''
+        }) public source !: string;
+
+
+        countAdd() {
+            if (this.showTableinfo) {
+                this.showTableinfo = false;
+                this.slider2 = 24;
+            } else {
+                this
+                    .showTableinfo = true;
+                this
+                    .slider2 = 19
             }
-        },
-        methods: {
-            countAdd() {
-                if (this.showTableinfo) {
-                    this.showTableinfo = false;
-                    this.slider2 = 24;
-                } else {
-                    this.showTableinfo = true;
-                    this.slider2 = 19
-                }
-                this.$store.commit('closeNav')
-            },
-            beauty() {
-                axios.put(`${this.$config.url}/query/beauty`, {
-                    'sql': this.formItem.textarea
+            this.$store.commit('closeNav')
+        }
+
+        beauty() {
+            axios.put(`${this.$config.url}/query/beauty`, {
+                'sql': this.formItem.textarea
+            })
+                .then(res => {
+                    this.formItem.textarea = res.data
                 })
-                    .then(res => {
-                        this.formItem.textarea = res.data
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        cur(vl: string) {
+            this.currentTab = vl
+        }
+
+        getTable(vl: any) {
+            if (vl[0].children === undefined) {
+                this.tableInfoName = vl[0].title
+            } else {
+                this.put_info.base = vl[0].title;
+            }
+        }
+
+        handleTabRemove() {
+            if (this.tabs === 1) {
+                this.$Message.error("窗口最少拥有一个！")
+            } else {
+                if (this.currentTab === `查询${this.tabs}`) {
+                    this.currentTab = `查询${this.tabs - 1}`
+                }
+                this.tabs--
+            }
+        }
+
+        editorInit() {
+            require('brace/mode/mysql');
+            require('brace/theme/xcode')
+        }
+
+        handleTabsAdd() {
+            this.tabs++
+        }
+
+        testSql() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    this.loading = true;
+                    axios.put(`${this.$config.url}/fetch/test`, {
+                        'database': this.formItem.database,
+                        'sql': this.formItem.textarea,
+                        'isDMl': true,
+                        'source': this.tree_data[0].title
                     })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            cur(vl) {
-                this.currentTab = vl
-            },
-            getTable(vl) {
-                if (vl[0].children === undefined) {
-                    this.tableInfoName = vl[0].title
-                } else {
-                    this.put_info.base = vl[0].title;
-                }
-            },
-            handleTabRemove() {
-                if (this.tabs === 1) {
-                    this.$Message.error("窗口最少拥有一个！")
-                } else {
-                    if (this.currentTab === `查询${this.tabs}`) {
-                        this.currentTab = `查询${this.tabs - 1}`
-                    }
-                    this.tabs--
-                }
-            },
-            editorInit: function () {
-                require('brace/mode/mysql');
-                require('brace/theme/xcode')
-            },
-            handleTabsAdd() {
-                this.tabs++
-            },
-            testSql() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        this.loading = true;
-                        axios.put(`${this.$config.url}/fetch/test`, {
-                            'database': this.formItem.database,
-                            'sql': this.formItem.textarea,
-                            'isDMl': true,
-                            'source': this.data1[0].title
-                        })
-                            .then(res => {
-                                this.testRes = res.data;
-                                let gen = 0;
-                                this.testRes.forEach(vl => {
-                                    if (vl.Level !== 0) {
-                                        gen += 1
-                                    }
-                                });
-                                if (gen === 0) {
-                                    this.validate_gen = false
-                                } else {
-                                    this.validate_gen = true
-                                }
-                                this.loading = false
-                            })
-                            .catch(err => {
-                                this.loading = false;
-                                this.$config.err_notice(err)
-                            })
-                    } else {
-                        this.$Message.error('请填写具体地址或sql语句后再测试!')
-                    }
-                })
-            },
-            commitOrder() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        axios.post(`${this.$config.url}/sql/refer`, {
-                            'ddl': this.formItem,
-                            'sql': this.formItem.textarea,
-                            'ty': 1
-                        })
-                            .then(res => {
-                                this.validate_gen = true;
-                                this.$Notice.success({
-                                    title: '成功',
-                                    desc: res.data
-                                })
-                            })
-                            .catch(error => {
-                                this.validate_gen = true;
-                                this.$config.err_notice(this, error)
-                            })
-                    }
-                })
-            },
-            clearForm() {
-                this.formItem = this.$config.clearObj(this.formItem)
-            },
-            openDrawer() {
-                this.fetchIDC();
-                this.drawer.open = true
-            },
-            choseName(vl) {
-                this.put_info.base = vl.title;
-                if (vl.expand === true) {
-                    this.$Spin.show({
-                        render: (h) => {
-                            return h('div', [
-                                h('Icon', {
-                                    'class': 'demo-spin-icon-load',
-                                    props: {
-                                        type: 'ios-loading',
-                                        size: 18
-                                    }
-                                }),
-                                h('div', 'Loading')
-                            ])
-                        }
-                    });
-                    axios.get(`${this.$config.url}/query/fetchtable/${vl.title}/${this.source}`)
                         .then(res => {
-                            if (res.data === 0) {
-                                this.$config.notice("已到查询时限上限,请重新申请查询！");
-                                this.$router.push({
-                                    name: 'query'
-                                });
-                                this.$Spin.hide();
-                                return
-                            }
-                            this.wordList = this.$config.concat(this.wordList, res.data.highlight);
-                            for (let i = 0; i < this.data1[0].children.length; i++) {
-                                if (this.data1[0].children[i].title === vl.title) {
-                                    this.data1[0].children[i].children = res.data.table
+                            this.testRes = res.data;
+                            let gen = 0;
+                            this.testRes.forEach((vl: { Level: number; }) => {
+                                if (vl.Level !== 0) {
+                                    gen += 1
                                 }
-                            }
-                            this.$Spin.hide()
+                            });
+                            this.validate_gen = gen !== 0;
+                            this.loading = false
                         })
-                        .catch(() => this.$Spin.hide())
+                        .catch(err => {
+                            this.loading = false;
+                            this.$config.err_notice(this, err)
+                        })
+                } else {
+                    this.$Message.error('请填写具体地址或sql语句后再测试!')
                 }
-            },
-            deferReply() {
-                axios.delete(`${this.$config.url}/query/undo`)
-                    .then(res => this.$config.notice(res.data))
-                    .catch(err => this.$config.err_notice(this, err));
-                this.$router.push({
-                    name: 'query'
-                })
-            },
-            setCompletions(editor, session, pos, prefix, callback) {
-                callback(null, this.wordList.map(function (word) {
-                    return {
-                        caption: word.vl,
-                        value: word.vl,
-                        meta: word.meta
+            })
+        }
+
+        commitOrder() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    axios.post(`${this.$config.url}/sql/refer`, {
+                        'ddl': this.formItem,
+                        'sql': this.formItem.textarea,
+                        'ty': 1
+                    })
+                        .then(res => {
+                            this.validate_gen = true;
+                            this.$Notice.success({
+                                title: '成功',
+                                desc: res.data
+                            })
+                        })
+                        .catch(error => {
+                            this.validate_gen = true;
+                            this.$config.err_notice(this, error)
+                        })
+                }
+            })
+        }
+
+        clearForm() {
+            this.formItem = this.$config.clearObj(this.formItem)
+        }
+
+        openDrawer() {
+            this.fetchIDC();
+            this.drawer.open = true
+        }
+
+        choseName(vl: any) {
+            let spin: any = this.$Spin;
+            this.put_info.base = vl.title;
+            if (vl.expand === true) {
+                spin.show({
+                    render: (h: any) => {
+                        return h('div', [
+                            h('Icon', {
+                                'class': 'demo-spin-icon-load',
+                                props: {
+                                    type: 'ios-loading',
+                                    size: 18
+                                }
+                            }),
+                            h('div', 'Loading')
+                        ])
                     }
-                }))
+                });
+                axios.get(`${this.$config.url}/query/fetchtable/${vl.title}/${this.source}`)
+                    .then(res => {
+                        if (res.data === 0) {
+                            this.$config.notice("已到查询时限上限,请重新申请查询！");
+                            this.$router.push({
+                                name: 'query'
+                            });
+                            spin.hide();
+                            return
+                        }
+                        this.wordList = this.$config.concat(this.wordList, res.data.highlight);
+                        for (let i = 0; i < this.tree_data[0].children.length; i++) {
+                            if (this.tree_data[0].children[i].title === vl.title) {
+                                this.tree_data[0].children[i].children = res.data.table
+                            }
+                        }
+                        spin.hide()
+                    })
+                    .catch(() => spin.hide())
             }
-        },
+        }
+
+        deferReply() {
+            axios.delete(`${this.$config.url}/query/undo`)
+                .then(res => this.$config.notice(res.data))
+                .catch(err => this.$config.err_notice(this, err));
+            this.$router.push({
+                name: 'query'
+            })
+        }
+
+        setCompletions(editor: any, session: any, pos: any, prefix: any, callback: (arg0: null, arg1: any) => void) {
+            callback(null, this.wordList.map(function (word: { vl: any; meta: any; }) {
+                return {
+                    caption: word.vl,
+                    value: word.vl,
+                    meta: word.meta
+                }
+            }))
+        }
+
         mounted() {
             axios.put(`${this.$config.url}/query/fetchbase`, {
                 'source': this.source
             })
                 .then(res => {
                     this.fetchData.assigned = res.data.sign;
-                    this.data1 = res.data.info;
+                    this.tree_data = res.data.info;
                     let tWord = this.$config.highlight.split('|');
                     for (let i of tWord) {
                         this.wordList.push({'vl': i, 'meta': '关键字'})
@@ -365,7 +353,22 @@
                     this.wordList = this.wordList.concat(res.data.highlight);
                     res.data['status'] === 1 ? this.export_data = true : this.export_data = false
                 })
-                .catch(err => this.$config.err_notice(this, err.response.data))
+                .catch(err => this.$config.err_notice(this, err))
         }
     }
 </script>
+
+<style lang="less">
+  @import "../../styles/common.less";
+  @import "../../styles/table.less";
+
+  .tree {
+    word-wrap: break-word;
+    word-break: break-all;
+    /*overflow-y: scroll;*/
+    /*overflow-x: scroll;*/
+    overflow: scroll;
+    max-width: 600px;
+    height: 600px;
+  }
+</style>

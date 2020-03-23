@@ -123,8 +123,8 @@
                             this.$emit('success');
                         })
                         .catch(error => {
-                            this.$config.err_notice(this, error)
-                        })
+                        this.$config.err_notice(this,error)
+                    })
                 }
             },
             marge_group(group) {
@@ -139,7 +139,7 @@
                     .then(res => {
                         this.permission = res.data;
                     })
-                    .catch(err => this.$config.err_notice(this, err))
+                    .catch(err => this.$config.err_notice(this,err))
             }
         }
     }

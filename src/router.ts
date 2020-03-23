@@ -1,62 +1,50 @@
 import Index from './main.vue'
+import dash from './views/mobile/dash.vue'
 
-const mainchild = [{
+const main_child = [{
     path: 'home',
     title: '首页',
     name: 'home_index',
-    component: resolve => {
-        require(['./views/home/home.vue'], resolve)
-    }
+    component: () => import('./views/home/home.vue'),
+
 },
     {
-        path: 'queryready',
+        path: 'query_apply',
         title: '查询申请进度',
-        name: 'queryready',
-        component: resolve => {
-            require(['./views/query/refer.vue'], resolve)
-        }
+        name: 'query_apply',
+        component: () => import('./views/query/refer.vue'),
     },
     {
-        path: 'querypage',
+        path: 'query_page',
         title: '查询',
-        name: 'querypage',
-        component: resolve => {
-            require(['./views/query/multiSource.vue'], resolve)
-        }
+        name: 'query_page',
+        component: () => import('./views/query/multiSource.vue'),
     },
     {
-        path: 'querylist',
+        path: 'query_review',
         title: '查询审计详情',
-        name: 'querylist',
-        component: resolve => {
-            require(['./components/orderExpend.vue'], resolve)
-        }
+        name: 'query_review',
+        component: () => import('./components/orderExpend.vue'),
     },
     {
-        path: 'orderlist',
+        path: 'order_detail',
         title: '工单详情',
-        name: 'orderlist',
-        component: resolve => {
-            require(['./components/myorderList.vue'], resolve)
-        }
+        name: 'order_detail',
+        component: () => import('./components/myorderList.vue'),
     },
     {
-        path: 'myorder',
-        name: 'myorder',
+        path: 'my_order',
+        name: 'my_order',
         title: '我的工单',
         icon: 'person',
-        component: resolve => {
-            require(['./views/order/myOrder.vue'], resolve)
-        }
+        component: () => import('./views/order/myOrder.vue')
     },
     {
         path: 'board',
         name: 'board',
         title: '公告',
         icon: 'md-clipboard',
-        component: resolve => {
-            require(['./views/board.vue'], resolve)
-        }
+        component: () => import('./views/board.vue')
     }
 ];
 
@@ -66,17 +54,39 @@ export const loginRouter = {
     meta: {
         title: 'Login - 登录'
     },
-    component: resolve => {
-        require(['./login.vue'], resolve)
-    }
+    component: () => import('./login.vue')
+};
+
+export const mobile_login = {
+    path: '/wap',
+    name: 'wap',
+    meta: {
+        title: 'Yearning'
+    },
+    component: dash,
+    children: [
+        {
+            path: '/wap_audit',
+            name: 'wap_audit',
+            component: () => import('./views/mobile/audit.vue')
+        },
+        {
+            path: '/wap_detail',
+            name: 'wap_detail',
+            component: () => import('./views/mobile/detail.vue')
+        },
+        {
+            path: '/wap_record',
+            name: 'wap_record',
+            component: () => import('./views/mobile/record.vue')
+        }
+    ]
 };
 
 export const locking = {
     path: '/locking',
     name: 'locking',
-    component: resolve => {
-        require(['./components/locking-page.vue'], resolve)
-    }
+    component: () => import('./components/locking-page.vue')
 };
 
 export const appRouter = [
@@ -88,7 +98,7 @@ export const appRouter = [
         component: Index,
         redirect: '/home',
         children: [
-            ...mainchild
+            ...main_child
         ]
     },
     {
@@ -107,9 +117,7 @@ export const appRouter = [
                 meta: {
                     keepAlive: true
                 },
-                component: resolve => {
-                    require(['./views/order/ddlOrder.vue'], resolve)
-                }
+                component: () => import('./views/order/ddlOrder.vue')
             },
             {
                 path: 'dml',
@@ -119,9 +127,7 @@ export const appRouter = [
                 meta: {
                     keepAlive: true
                 },
-                component: resolve => {
-                    require(['./views/order/dmlOrder.vue'], resolve)
-                }
+                component: () => import('./views/order/dmlOrder.vue')
             }
         ]
     },
@@ -137,9 +143,7 @@ export const appRouter = [
             name: 'query',
             title: 'SQL查询',
             icon: 'ios-podium',
-            component: resolve => {
-                require(['./views/query/workFlow.vue'], resolve)
-            }
+            component: () => import('./views/query/workFlow.vue')
         }]
     },
     {
@@ -154,18 +158,14 @@ export const appRouter = [
             name: 'audit-audit',
             title: '工单',
             icon: 'md-create',
-            component: resolve => {
-                require(['./views/audit/sqlAudit.vue'], resolve)
-            }
+            component: () => import('./views/audit/sqlAudit.vue')
         },
             {
                 path: 'query-audit',
                 name: 'query-audit',
                 title: '查询',
                 icon: 'logo-rss',
-                component: resolve => {
-                    require(['./views/audit/queryAudit.vue'], resolve)
-                }
+                component: () => import('./views/audit/queryAudit.vue')
             }
         ]
     },
@@ -182,18 +182,14 @@ export const appRouter = [
                 name: 'audit-record',
                 title: '工单审计',
                 icon: 'md-list',
-                component: resolve => {
-                    require(['./views/assistantManger/record.vue'], resolve)
-                }
+                component: () => import('./views/assistantManger/record.vue')
             },
             {
                 path: 'query-review',
                 name: 'query-review',
                 title: '查询审计',
                 icon: 'md-pulse',
-                component: resolve => {
-                    require(['./views/assistantManger/queryRecord.vue'], resolve)
-                }
+                component: () => import('./views/assistantManger/queryRecord.vue')
             }
 
         ]
@@ -211,63 +207,49 @@ export const appRouter = [
                 name: 'management-user',
                 title: '用户',
                 icon: 'md-people',
-                component: resolve => {
-                    require(['./views/management/userInfo.vue'], resolve)
-                }
+                component: () => import('./views/management/userInfo.vue')
             },
             {
                 path: 'management-database',
                 name: 'management-database',
                 title: '数据库',
                 icon: 'md-medal',
-                component: resolve => {
-                    require(['./views/management/databaseManager.vue'], resolve)
-                }
+                component: () => import('./views/management/databaseManager.vue')
             },
             {
                 path: 'authGroup',
                 name: 'authGroup',
                 title: '用户权限',
                 icon: 'ios-switch',
-                component: resolve => {
-                    require(['./views/management/authGroup.vue'], resolve)
-                }
+                component: () => import('./views/management/authGroup.vue')
             },
             {
                 path: 'roleGroup',
                 name: 'roleGroup',
                 title: '权限组',
                 icon: 'logo-google',
-                component: resolve => {
-                    require(['./views/management/roleGroup.vue'], resolve)
-                }
+                component: () => import('./views/management/roleGroup.vue')
             },
             {
                 path: 'setting',
                 name: 'setting',
                 title: '设置',
                 icon: 'md-settings',
-                component: resolve => {
-                    require(['./views/management/setting.vue'], resolve)
-                }
+                component: () => import('./views/management/setting.vue')
             },
             {
                 path: 'roles',
                 name: 'roles',
                 title: '审核规则',
                 icon: 'md-aperture',
-                component: resolve => {
-                    require(['./views/management/roles.vue'], resolve)
-                }
+                component: () => import('./views/management/roles.vue')
             },
             {
                 path: 'task',
                 name: 'task',
                 title: 'AutoTask',
                 icon: 'md-sync',
-                component: resolve => {
-                    require(['./views/management/autoTask.vue'], resolve)
-                }
+                component: () => import('./views/management/autoTask.vue')
             }
         ]
     }
@@ -276,5 +258,6 @@ export const appRouter = [
 export const MainRoute = [
     loginRouter,
     locking,
-    ...appRouter
+    ...appRouter,
+    mobile_login
 ];

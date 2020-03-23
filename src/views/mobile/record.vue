@@ -2,10 +2,6 @@
   <div>
     <Row>
       <Card>
-        <p slot="title">
-          <Icon type="md-send"></Icon>
-          历史工单执行记录
-        </p>
         <Form inline ref="queryForm">
           <FormItem>
             <Input placeholder="工单编号" v-model="find.text" @on-keyup.enter="queryData"></Input>
@@ -51,16 +47,46 @@
     </Row>
   </div>
 </template>
+
 <script lang="ts">
     import {Component, Vue} from "vue-property-decorator";
-    import record_mixins from "@/mixins/record_mixin"
+    import record_mixins from "@/mixins/record_mixin";
 
     @Component({components: {}, mixins: [record_mixins]})
     export default class record extends Vue {
+        tab_columns = [
+            {
+                title: '工单',
+                key: 'WorkId',
+                tooltip: true,
+                fixed: 'left',
+                width: 100
+            },
+            {
+                title: '工单说明',
+                key: 'Text',
+                tooltip: true,
+                width: 150
+            },
+            {
+                title: '执行时间',
+                key: 'ExecuteTime',
+                sortType: 'desc',
+                tooltip: true,
+                width: 100
+            },
+            {
+                title: '操作',
+                key: 'action',
+                align: 'center',
+                slot: 'action',
+                width: 150
+            }
+        ];
     }
 </script>
 
-<style lang="less">
-  @import "../../styles/common.less";
-  @import "../../styles/table.less";
+<style scoped>
+  @import '../../styles/common.less';
+  @import '../../styles/table.less';
 </style>

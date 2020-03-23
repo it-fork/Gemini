@@ -18,7 +18,7 @@
                       <h1>用户数</h1>
                     </Col>
                     <Col span="8" offset="5">
-                      <infor-card id-name="transfer_count0" :end-val="count.createUser"></infor-card>
+                      <info_card id-name="transfer_count0" :end-val="count.createUser"></info_card>
                     </Col>
                   </div>
                 </Row>
@@ -36,7 +36,7 @@
                       <h1>数据源</h1>
                     </Col>
                     <Col span="8" offset="5">
-                      <infor-card id-name="transfer_count1" :end-val="count.source"></infor-card>
+                      <info_card id-name="transfer_count1" :end-val="count.source"></info_card>
                     </Col>
                   </div>
                 </Row>
@@ -54,7 +54,7 @@
                       <h1>工单总数</h1>
                     </Col>
                     <Col span="8" offset="5">
-                      <infor-card id-name="transfer_count2" :end-val="count.order"></infor-card>
+                      <info_card id-name="transfer_count2" :end-val="count.order"></info_card>
                     </Col>
                   </div>
                 </Row>
@@ -72,7 +72,7 @@
                       <h1>查询总数</h1>
                     </Col>
                     <Col span="8" offset="5">
-                      <infor-card id-name="transfer_count3" :end-val="count.query"></infor-card>
+                      <info_card id-name="transfer_count3" :end-val="count.query"></info_card>
                     </Col>
                   </div>
                 </Row>
@@ -90,7 +90,7 @@
             <Icon type="md-person" size="24"/>
             个人信息
           </p>
-          <userinfomation></userinfomation>
+          <myself></myself>
         </Card>
       </Col>
       <Col span="8" style="margin-left: 1%">
@@ -126,7 +126,7 @@
             工单趋势
           </p>
           <div class="data-source-row">
-            <dataSourceaxis></dataSourceaxis>
+            <dataSourceAxis></dataSourceAxis>
           </div>
         </Card>
       </Col>
@@ -134,60 +134,45 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
     import axios from 'axios'
-    import dataSourcePie from '../../components/dataSourcePie.vue'
-    import dataSourceaxis from '../../components/dataSourceAxis'
-    import inforCard from '../../components/inforCard.vue'
-    import userinfomation from '../personalCenter/own-space'
+    import dataSourcePie from '@/components/dataSourcePie.vue'
+    import dataSourceAxis from '@/components/dataSourceAxis.vue'
+    import info_card from '@/components/inforCard.vue'
+    import myself from '@/views/personalCenter/myself.vue'
+    import {Vue, Component} from 'vue-property-decorator'
 
-    export default {
-        components: {
-            dataSourcePie,
-            inforCard,
-            dataSourceaxis,
-            userinfomation
+    @Component({components: {dataSourcePie, info_card, dataSourceAxis, myself}})
+    export default class home extends Vue {
+        $config: any;
+        columnsTop5 = [
+            {
+                title: '数据库',
+                key: 'DataBase'
+            },
+            {
+                title: '审核工单数',
+                key: 'C'
+            }
+        ];
+        count = {
+            dataTop5: [],
+            createUser: 0,
+            order: 0,
+            source: 0,
+            query: 0,
+            ddl: 0,
+            dml: 0
+        };
+        time = '';
+        username = sessionStorage.getItem('user');
 
-        },
-        data() {
-            return {
-                columnsTop5: [
-                    {
-                        title: '数据库',
-                        key: 'DataBase'
-                    },
-                    {
-                        title: '审核工单数',
-                        key: 'C'
-                    }
-                ],
-                toDoList: [{
-                    title: ''
-                }],
-                count: {
-                    dataTop5: [],
-                    createUser: 0,
-                    order: 0,
-                    source: 0,
-                    query: 0,
-                    ddl: 0,
-                    dml: 0
-                },
-                newToDoItemValue: '',
-                time: '',
-                username: sessionStorage.getItem('user'),
-                board: {
-                    'title': ['1.DDL语句生成', '2.SQL语句审核及回滚', '3.工单流程化', '4.可视化数据查询', '5.细粒度的权限划分']
-                }
-            }
-        },
-        methods: {
-            formatDate() {
-                let date = new Date();
-                let month = date.getMonth() + 1;
-                this.time = date.getFullYear() + '/' + month + '/' + date.getDate() + '  ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds()
-            }
-        },
+        formatDate() {
+            let date: Date = new Date();
+            let month: number = date.getMonth() + 1;
+            this.time = date.getFullYear() + '/' + month + '/' + date.getDate() + '  ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds()
+        }
+
         mounted() {
             axios.get(`${this.$config.url}/dash/count`)
                 .then(res => {

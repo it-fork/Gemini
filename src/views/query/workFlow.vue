@@ -63,123 +63,123 @@
   </div>
 </template>
 
-<script>
-    //
+<script lang="ts">
     import axios from 'axios'
-    import {fetchSth} from "../../libs/mixin";
+    import fetch_mixins from "@/mixins/fetch_mixin";
+    import {Component,Mixins} from "vue-property-decorator";
 
-    export default {
-        name: 'work_flow',
-        props: ['msg'],
-        mixins: [fetchSth],
-        data() {
-            return {
-                export_list: false,
-                stepData: {
-                    title: 'Yearning SQL查询系统',
-                    describe: `欢迎你！ ${sessionStorage.getItem('user')}`
-                },
-                stepList1: [
-                    {
-                        title: '提交',
-                        describe: '提交查询申请'
-                    },
-                    {
-                        title: '审核',
-                        describe: '等待审核结果'
-                    },
-                    {
-                        title: '查询',
-                        describe: '审核完毕，进入查询页面'
-                    }
-                ],
-                stepRules: {
-                    text: [
-                        {required: true, message: '请填写查询说明', trigger: 'blur'}
-                    ],
-                    idc: [{
-                        required: true,
-                        message: '环境地址不得为空',
-                        trigger: 'change'
-                    }],
-                    source: [{
-                        required: true,
-                        message: '连接名不得为空',
-                        trigger: 'change'
-                    }],
-                    assigned: [{
-                        required: true,
-                        message: '审核人不得为空',
-                        trigger: 'change'
-                    }]
-                },
-                item: {},
-                formItem: {
-                    text: '',
-                    idc: '',
-                    export: 0,
-                    assigned: ''
-                }
+    @Component({components: {}})
+    export default class work_flow extends Mixins(fetch_mixins) {
+        $config: any;
+        export_list = false;
+        stepData = {
+            title: 'Yearning SQL查询系统',
+            describe: `欢迎你！ ${sessionStorage.getItem('user')}`
+        };
+        stepList1 = [
+            {
+                title: '提交',
+                describe: '提交查询申请'
+            },
+            {
+                title: '审核',
+                describe: '等待审核结果'
+            },
+            {
+                title: '查询',
+                describe: '审核完毕，进入查询页面'
             }
-        },
-        methods: {
-            fetchSource(idc) {
-                if (idc) {
-                    axios.get(`${this.$config.url}/fetch/source/${idc}/query`)
-                        .then(res => {
-                            if (res.data.x === 'query') {
-                                this.fetchData.assigned = res.data.assigned
-                            } else {
-                                this.$config.notice('非法劫持参数！')
-                            }
-                        })
-                        .catch(error => {
-                            this.$config.err_notice(this, error)
-                        })
-                }
-            },
-            handleSubmit() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        axios.post(`${this.$config.url}/query/refer`, {
-                            'idc': this.formItem.idc,
-                            'source': this.formItem.source,
-                            'export': this.formItem.export,
-                            'assigned': this.formItem.assigned,
-                            'text': this.formItem.text
-                        })
-                            .then(() => {
-                                this.$router.push({
-                                    name: 'queryready'
-                                })
-                            })
-                            .catch(err => {
-                                this.$config.err_notice(this, err)
-                            })
-                    }
-                })
-            },
-            fetchQueryStatus() {
-                axios.put(`${this.$config.url}/query/status`)
+        ];
+        stepRules = {
+            text: [
+                {required: true, message: '请填写查询说明', trigger: 'blur'}
+            ],
+            idc: [{
+                required: true,
+                message: '环境地址不得为空',
+                trigger: 'change'
+            }],
+            source: [{
+                required: true,
+                message: '连接名不得为空',
+                trigger: 'change'
+            }],
+            assigned: [{
+                required: true,
+                message: '审核人不得为空',
+                trigger: 'change'
+            }]
+        };
+        item = {};
+        formItem:any = {
+            text: '',
+            idc: '',
+            export: 0,
+            assigned: '',
+            source:''
+        };
+
+        fetchSource(idc: string) {
+            if (idc) {
+                axios.get(`${this.$config.url}/fetch/source/${idc}/query`)
                     .then(res => {
-                        if (res.data.status === 1) {
-                            this.$router.push({
-                                name: 'querypage'
-                            })
-                        } else if (res.data.status === 2) {
-                            this.$router.push({
-                                name: 'queryready'
-                            })
+                        if (res.data.x === 'query') {
+                            this.fetchData.assigned = res.data.assigned
                         } else {
-                            this.fetchIDC();
-                            this.export_list = res.data.export;
+                            this.$config.notice('非法劫持参数！')
                         }
                     })
+                    .catch(error => {
+                        this.$config.err_notice(this,error)
+                    })
             }
-        },
+        }
+
+        handleSubmit() {
+            let is_validate:any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    axios.post(`${this.$config.url}/query/refer`, {
+                        'idc': this.formItem.idc,
+                        'source': this.formItem.source,
+                        'export': this.formItem.export,
+                        'assigned': this.formItem.assigned,
+                        'text': this.formItem.text
+                    })
+                        .then(() => {
+                            this.$router.push({
+                                name: 'query_apply'
+                            })
+                        })
+                        .catch(err => {
+                        this.$config.err_notice(this,err)
+                    })
+                }
+            })
+        }
+
+        fetchQueryStatus() {
+            axios.put(`${this.$config.url}/query/status`)
+                .then(res => {
+                    if (res.data.status === 1) {
+                        this.$router.push({
+                            name: 'query_page'
+                        })
+                    } else if (res.data.status === 2) {
+                        this.$router.push({
+                            name: 'query_apply'
+                        })
+                    } else {
+                        this.fetchIDC();
+                        this.export_list = res.data.export;
+                    }
+                })
+        }
+
         mounted() {
             this.fetchQueryStatus();
         }
+
     }
 </script>
 

@@ -3,7 +3,7 @@
     <Row>
       <Card>
         <p slot="title">
-          <Icon type="logo-google" />
+          <Icon type="logo-google"/>
           权限组
         </p>
         <div>
@@ -14,7 +14,7 @@
           <Button @click="queryCancel" type="warning" class="margin-left-10">重置</Button>
           <br>
           <br>
-          <Table border :columns="columns" :data="data6" stripe height="550">
+          <Table border :columns="columns" :data="table_data" stripe height="550">
             <template slot-scope="{ row }" slot="action">
               <Button type="info" size="small" @click="editAuthGroup(row)" style="margin-right: 5px">
                 查看与编辑
@@ -31,7 +31,7 @@
           </Table>
         </div>
         <br>
-        <Page :total="pagenumber" show-elevator @on-change="refreshgroup" :page-size="10" ref="total"></Page>
+        <Page :total="page_number" show-elevator @on-change="current_page" :page-size="10" :current.sync="current"></Page>
       </Card>
     </Row>
 
@@ -152,80 +152,151 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
     import axios from 'axios'
-    import {group} from "../../libs/mixin";
+    import {Mixins, Component} from "vue-property-decorator";
+    import att_mixins from "@/mixins/att";
 
-    export default {
-        name: 'role-group',
-        mixins: [group],
-        data() {
-            return {
-                columns: [
-                    {
-                        title: 'ID',
-                        key: 'ID',
-                        width: 85,
-                        sortable: true
-                    },
-                    {
-                        title: '权限组',
-                        key: 'Name',
-                        sortable: true
-                    },
-                    {
-                        title: '操作',
-                        key: 'action',
-                        align: 'center',
-                        slot: 'action'
-                    }
-                ],
-                addAuthGroupForm: {
-                    groupname: ''
-                }
+    @Component
+    export default class role_group extends Mixins(att_mixins) {
+        columns = [
+            {
+                title: 'ID',
+                key: 'ID',
+                width: 85,
+                sortable: true
+            },
+            {
+                title: '权限组',
+                key: 'Name',
+                sortable: true
+            },
+            {
+                title: '操作',
+                key: 'action',
+                align: 'center',
+                slot: 'action'
             }
-        },
-        methods: {
-            saveAddGroup() {
-                axios.post(`${this.$config.url}/group/update`, {
-                    'username': this.addAuthGroupForm.groupname,
-                    'permission': this.permission,
-                    'tp': 1
+        ];
+        addAuthGroupForm = {
+            groupname: ''
+        };
+        permission = {
+            ddl: '0',
+            ddlsource: [],
+            dml: '0',
+            dmlsource: [],
+            query: '0',
+            querysource: [],
+            user: '0',
+            base: '0',
+            auditor: []
+        } as any;
+        connectionList = {
+            connection: [],
+            person: [],
+            query: []
+        } as any;
+
+        indeterminate = {
+            ddl: true,
+            dml: true,
+            query: true,
+            person: true
+        } as any;
+
+        checkAll = {
+            ddl: false,
+            dml: false,
+            query: false,
+            person: false
+        } as any;
+
+
+        addAuthGroupModal = false;
+        isReadOnly = false;
+
+        saveAddGroup() {
+            axios.post(`${this.$config.url}/group/update`, {
+                'username': this.addAuthGroupForm.groupname,
+                'permission': this.permission,
+                'tp': 1
+            })
+                .then(res => {
+                    this.$config.notice(res.data);
+                    this.current = 1;
+                    this.current_page()
                 })
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.$refs.total.currentPage = 1;
-                        this.refreshgroup()
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    });
-                this.addAuthGroupModal = false
-            },
-            refreshgroup(vl = 1) {
-                axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}&tp=1`)
-                    .then(res => {
-                        this.data6 = res.data.group_list;
-                        this.pagenumber = parseInt(res.data.page);
-                        this.connectionList.connection = res.data.source;
-                        this.connectionList.query = res.data.query;
-                        this.connectionList.person = res.data.audit;
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            deleteAuthGroup(vl) {
-                axios.delete(`${this.$config.url}/group/del/${vl.Name}`)
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.refreshgroup()
-                    })
-                    .catch(err => this.$config.err_notice(this, err))
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                });
+            this.addAuthGroupModal = false
+        }
+
+        current_page(vl = 1) {
+            axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}&tp=1`)
+                .then(res => {
+                    this.table_data = res.data.group_list;
+                    this.page_number = parseInt(res.data.page);
+                    this.connectionList.connection = res.data.source;
+                    this.connectionList.query = res.data.query;
+                    this.connectionList.person = res.data.audit;
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
+        deleteAuthGroup(vl: { Name: string; }) {
+            axios.delete(`${this.$config.url}/group/del/${vl.Name}`)
+                .then(res => {
+                    this.$config.notice(res.data);
+                    this.current_page()
+                })
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        queryData() {
+            this.query.valve = true;
+            this.current_page()
+        }
+
+        queryCancel() {
+            this.$config.clearObj(this.formItem);
+            this.current_page()
+        }
+
+        batchOpen() {
+            this.addAuthGroupModal = true;
+            this.isReadOnly = false;
+            this.addAuthGroupForm.groupname = '';
+            this.permission = this.$config.clearOption(this.permission);
+            this.current_page();
+        }
+
+        editAuthGroup(vl: {Name: string; Permissions: any; }) {
+            this.isReadOnly = true;
+            this.addAuthGroupModal = true;
+            this.addAuthGroupForm.groupname = vl.Name;
+            this.permission = vl.Permissions;
+        }
+
+        ddlCheckAll(name: string | number, indeterminate: string | number, ty: string) {
+            this.checkAll[indeterminate] = !this.checkAll[indeterminate];
+            this.indeterminate[indeterminate] = false;
+            if (this.checkAll[indeterminate]) {
+                if (ty === 'person') {
+                    this.permission[name] = this.connectionList[ty].map((vl: { Username: string; }) => vl.Username);
+                } else {
+                    this.permission[name] = this.connectionList[ty].map((vl: { Source: string; }) => vl.Source)
+                }
+            } else {
+                this.permission[name] = []
             }
-        },
+        }
+
         mounted() {
-            this.refreshgroup()
+            this.current_page()
         }
     }
 </script>

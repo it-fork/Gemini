@@ -198,7 +198,8 @@
                       <Col span="6">
                         <Form :label-width="150">
                           <FormItem label="OSCMinTableSize">
-                            <InputNumber :min="0" v-model="juno.OscSize"  :formatter="value => `${value}m`"></InputNumber>
+                            <InputNumber :min="0" v-model="juno.OscSize"
+                                         :formatter="value => `${value}m`"></InputNumber>
                           </FormItem>
                           <FormItem label="检查插入语句存在列名">
                             <i-switch size="large" v-model="juno.DMLInsertColumns">
@@ -370,31 +371,29 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
     import axios from 'axios'
+    import {Mixins, Component} from "vue-property-decorator";
+    import att_mixins from "../../mixins/att";
 
-    export default {
-        name: "roles",
-        data() {
-            return {
-                juno: {
-                    DMLMaxInsertRows: 2
-                }
-            }
-        },
-        methods: {
-            referRoles() {
-                axios.post(`${this.$config.url}/group/setting/roles`, {
-                    'juno': this.juno
+    @Component
+    export default class roles extends Mixins(att_mixins) {
+        juno = {
+            DMLMaxInsertRows: 2
+        };
+
+        referRoles() {
+            axios.post(`${this.$config.url}/group/setting/roles`, {
+                'juno': this.juno
+            })
+                .then(res => {
+                    this.$config.notice(res.data)
                 })
-                    .then(res => {
-                        this.$config.notice(res.data)
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            }
-        },
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
         mounted() {
             axios.get(`${this.$config.url}/group/setting`)
                 .then(res => {

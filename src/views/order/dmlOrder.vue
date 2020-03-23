@@ -114,112 +114,88 @@
           <editor v-model="formItem.textarea" @init="editorInit" @setCompletions="setCompletions"></editor>
           <br>
           <br>
-          <Table :columns="testColumns" :data="Testresults" highlight-row></Table>
+          <Table :columns="testColumns" :data="testResults" highlight-row></Table>
         </Card>
       </Col>
     </Row>
   </div>
 </template>
-<script>
+<script lang="ts">
     import axios from 'axios'
-    import editor from '../../components/editor'
-    import {fetchSth, order} from "../../libs/mixin";
+    import editor from '@/components/editor.vue'
+    import {Component, Mixins} from "vue-property-decorator";
+    import fetch_mixins from "@/mixins/fetch_mixin";
+    import order_mixins from "@/mixins/order_mixin";
 
-    export default {
-        components: {
-            editor: editor
-        },
-        mixins: [fetchSth, order],
-        name: 'SQLsyntax',
-        data() {
-            return {
-                validate_gen: true,
-                formItem: {
-                    text: '',
-                    idc: '',
-                    source: '',
-                    database: '',
-                    table: '',
-                    backup: 1,
-                    assigned: '',
-                    delay: null,
-                    textarea: ''
-                },
-                Testresults: [],
-                item: {},
-                id: null,
-                assigned: [],
-                wordList: [],
-                loading: false
-            }
-        },
-        methods: {
-            beauty() {
-                axios.put(`${this.$config.url}/query/beauty`, {
-                    'sql': this.formItem.textarea
+    @Component({components: {editor}})
+    export default class dml_order extends Mixins(fetch_mixins, order_mixins) {
+
+        beauty() {
+            axios.put(`${this.$config.url}/query/beauty`, {
+                'sql': this.formItem.textarea
+            })
+                .then(res => {
+                    this.formItem.textarea = res.data
                 })
-                    .then(res => {
-                        this.formItem.textarea = res.data
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        testSql() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    this.loading = true;
+                    axios.put(`${this.$config.url}/fetch/test`, {
+                        'source': this.formItem.source,
+                        'database': this.formItem.database,
+                        'sql': this.formItem.textarea,
+                        'isDMl': true
                     })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            testSql() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        this.loading = true;
-                        axios.put(`${this.$config.url}/fetch/test`, {
-                            'source': this.formItem.source,
-                            'database': this.formItem.database,
-                            'sql': this.formItem.textarea,
-                            'isDMl': true
-                        })
-                            .then(res => {
-                                this.Testresults = res.data;
-                                let gen = 0;
-                                this.Testresults.forEach(vl => {
-                                    if (vl.Level !== 0) {
-                                        gen += 1
-                                    }
-                                });
-                                if (gen === 0) {
-                                    this.validate_gen = false
-                                } else {
-                                    this.validate_gen = true
+                        .then(res => {
+                            this.testResults = res.data;
+                            let gen = 0;
+                            this.testResults.forEach((vl: { Level: number; }) => {
+                                if (vl.Level !== 0) {
+                                    gen += 1
                                 }
-                                this.loading = false
-                            })
-                            .catch(err => {
-                                this.loading = false;
-                                this.$config.err_notice(this, err)
-                            })
-                    } else {
-                        this.$Message.error('请填写具体地址或sql语句后再测试!')
-                    }
-                })
-            },
-            commitOrder() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        axios.post(`${this.$config.url}/sql/refer`, {
-                            'ddl': this.formItem,
-                            'sql': this.formItem.textarea,
-                            'ty': 1
+                            });
+                            this.validate_gen = gen !== 0;
+                            this.loading = false
                         })
-                            .then(res => {
-                                this.validate_gen = true;
-                                this.$Notice.success({
-                                    title: '成功',
-                                    desc: res.data
-                                })
+                        .catch(err => {
+                            this.loading = false;
+                            this.$config.err_notice(this, err)
+                        })
+                } else {
+                    this.$Message.error('请填写具体地址或sql语句后再测试!')
+                }
+            })
+        }
+
+        commitOrder() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    axios.post(`${this.$config.url}/sql/refer`, {
+                        'ddl': this.formItem,
+                        'sql': this.formItem.textarea,
+                        'ty': 1
+                    })
+                        .then(res => {
+                            this.validate_gen = true;
+                            this.$Notice.success({
+                                title: '成功',
+                                desc: res.data
                             })
-                            .catch(error => {
-                                this.validate_gen = true;
-                                this.$config.err_notice(this, error)
-                            })
-                    }
-                })
-            }
-        },
+                        })
+                        .catch(error => {
+                            this.validate_gen = true;
+                            this.$config.err_notice(this, error)
+                        })
+                }
+            })
+        }
+
         mounted() {
             this.fetchIDC();
             for (let i of this.$config.highlight.split('|')) {

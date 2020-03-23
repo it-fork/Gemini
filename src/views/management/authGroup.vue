@@ -13,7 +13,7 @@
           <Button @click="queryCancel" type="warning" class="margin-left-10">重置</Button>
           <br>
           <br>
-          <Table border :columns="columns" :data="data6" stripe height="550">
+          <Table border :columns="columns" :data="table_data" stripe height="550">
             <template slot-scope="{ row }" slot="action">
               <Button type="info" size="small" @click="edit_rule(row)" style="margin-right: 5px">
                 查看与编辑
@@ -22,7 +22,7 @@
           </Table>
         </div>
         <br>
-        <Page :total="page_number" show-elevator @on-change="fetch_info" :page-size="10" ref="total"></Page>
+        <Page :total="page_number" show-elevator @on-change="current_page" :page-size="10" ref="total"></Page>
       </Card>
     </Row>
 
@@ -31,86 +31,80 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
     import axios from 'axios'
-    import edit_rule from "../../components/edit_rule";
-    import {about_rule} from "../../libs/user_classMixin";
+    import edit_rule from "@/components/edit_rule.vue";
+    import {Mixins, Component} from "vue-property-decorator";
+    import att_mixins from "../../mixins/att";
 
-    export default {
-        name: 'auth-group',
-        mixins: [about_rule],
-        components: {edit_rule},
-        data() {
-            return {
-                query: {
-                    username: '',
-                    valve: false
-                },
-                page_number: 1,
-                data6: [],
-                columns: [
-                    {
-                        title: 'ID',
-                        key: 'ID',
-                        width: 85,
-                        sortable: true
-                    },
-                    {
-                        title: '用户名',
-                        key: 'Username',
-                        sortable: true
-                    },
-                    {
-                        title: '操作',
-                        key: 'action',
-                        align: 'center',
-                        slot: 'action'
-                    }
-                ],
-                rule_form: {
-                    username: '',
-                    group: []
-                }
+    @Component({components: {edit_rule}})
+    export default class user_access extends Mixins(att_mixins) {
+        columns = [
+            {
+                title: 'ID',
+                key: 'ID',
+                width: 85,
+                sortable: true
+            },
+            {
+                title: '用户名',
+                key: 'Username',
+                sortable: true
+            },
+            {
+                title: '操作',
+                key: 'action',
+                align: 'center',
+                slot: 'action'
             }
-        },
-        methods: {
-            edit_rule(vl) {
-                this.rule_form = {
-                    username: vl.Username,
-                    group: vl.Group
-                };
-                this.is_open = true;
-            },
-            fetch_info(vl = 1) {
-                this.page_num = vl;
-                axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}`)
-                    .then(res => {
-                        this.data6 = res.data.data;
-                        this.group_list = res.data.group_list;
-                        this.page_number = parseInt(res.data.page);
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            queryData() {
-                this.query.valve = true;
-                this.fetch_info()
-            },
-            queryCancel() {
-                this.$config.clearObj(this.query);
-                this.fetch_info()
-            },
-            cancel() {
-                this.is_open = false;
-                this.rule_form.group = []
-            },
-            post_ok() {
-                this.fetch_info(this.page_num)
-            }
-        },
+        ];
+        rule_form = {
+            username: '',
+            group: []
+        };
+
+        edit_rule(vl: { Username: string; Group: never; }) {
+            this.rule_form = {
+                username: vl.Username,
+                group: vl.Group
+            };
+            this.is_open = true;
+        }
+
+        current_page(vl = 1) {
+            this.page_number = vl;
+            axios.get(`${this.$config.url}/group?page=${vl}&con=${JSON.stringify(this.query)}`)
+                .then(res => {
+                    this.table_data = res.data.data;
+                    this.group_list = res.data.group_list;
+                    this.page_number = parseInt(res.data.page);
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
+        queryData() {
+            this.query.valve = true;
+            this.current_page()
+        }
+
+        queryCancel() {
+            this.$config.clearObj(this.formItem);
+            this.current_page()
+        }
+
+        cancel() {
+            this.is_open = false;
+            this.rule_form.group = []
+        }
+
+        post_ok() {
+            this.current_page(this.page_number)
+        }
+
         mounted() {
-            this.fetch_info()
+            this.current_page()
         }
     }
 </script>

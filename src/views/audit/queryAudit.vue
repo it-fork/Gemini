@@ -128,7 +128,7 @@
                         this.$config.notice(res.data);
                         this.permisson_list()
                     })
-                    .catch(err => this.$config.err_notice(this, err))
+                    .catch(err => this.$config.err_notice(this,err))
             },
             permisson_list(vl = 1) {
                 axios.put(`${this.$config.url}/audit/query/fetch`, {
@@ -143,7 +143,7 @@
                         this.per_pn = res.data.page
                     })
                     .catch(error => {
-                        this.$config.err_notice(this, error)
+                        this.$config.err_notice(this,error)
                     })
             },
             savedata(row) {
@@ -154,7 +154,7 @@
                         this.permisson_list()
                     })
                     .catch(error => {
-                        this.$config.err_notice(this, error)
+                        this.$config.err_notice(this,error)
                     })
             },
             reject(row) {
@@ -165,7 +165,7 @@
                         this.permisson_list()
                     })
                     .catch(error => {
-                        this.$config.err_notice(this, error)
+                        this.$config.err_notice(this,error)
                     })
             },
             stop_query(vl) {
@@ -174,7 +174,7 @@
                         this.$config.notice(res.data)
                         this.permisson_list()
                     })
-                    .catch(err => this.$config.err_notice(this, err))
+                    .catch(err => this.$config.err_notice(this,err))
             },
             queryData() {
                 this.find.valve = true

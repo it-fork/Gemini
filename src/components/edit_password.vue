@@ -104,11 +104,11 @@
                                 this.$config.notice(res.data);
                             })
                             .catch(error => {
-                                this.$config.err_notice(this, error)
-                            });
+                        this.$config.err_notice(this,error)
+                    });
                     }
                 });
-                this.$config.clearObj(this.form)
+                this.$config.clearObj(this.formItem)
             }
         },
     }

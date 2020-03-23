@@ -48,7 +48,7 @@
           </template>
         </Table>
         <br>
-        <Page :total="pg" show-elevator @on-change="fetchAutoTaskList" :page-size="15" ref="page"></Page>
+        <Page :total="page_number" show-elevator @on-change="fetchAutoTaskList" :page-size="15" :current.sync="current"></Page>
       </Card>
     </Row>
 
@@ -85,163 +85,170 @@
   </div>
 </template>
 
-<script>
-    import {opening, fetchSth, order} from '../../libs/mixin'
+<script lang="ts">
     import axios from 'axios'
+    import {Mixins, Component} from "vue-property-decorator";
+    import fetch_mixins from "@/mixins/fetch_mixin";
+    import order_mixins from "@/mixins/order_mixin";
 
-    export default {
-        name: "autoTask",
-        mixins: [opening, fetchSth, order],
-        data() {
-            return {
-                openTask: false,
-                fetchList: {
-                    source: [],
-                    tp: [
-                        {
-                            'title': 'Insert',
-                            'v': 0
-                        },
-                        {
-                            'title': 'Update',
-                            'v': 1
-                        },
-                        {
-                            'title': 'Delete',
-                            'v': 2
-                        }
-                    ]
+    @Component
+    export default class autoTask extends Mixins(fetch_mixins, order_mixins) {
+        fetchList = {
+            source: [],
+            tp: [
+                {
+                    'title': 'Insert',
+                    'v': 0
                 },
-                task_columns: [
-                    {
-                        title: '名称',
-                        key: 'Name',
-                    },
-                    {
-                        title: '类型',
-                        key: 'Tp',
-                        slot: 'tp'
-                    },
-                    {
-                        title: '数据源',
-                        key: 'Source',
-                    },
-                    {
-                        title: '数据库',
-                        key: 'Base',
-                    },
-                    {
-                        title: '数据表',
-                        key: 'Table',
-                    },
-                    {
-                        title: '最大影响行数',
-                        key: 'Affectrow',
-                    },
-                    {
-                        title: '状态',
-                        key: 'status',
-                        slot: 'status'
-                    },
-                    {
-                        title: '操作',
-                        key: 'action',
-                        slot: 'action'
-                    },
-                ],
-                task_data: [],
-                pg: 1,
-                wordList: [],
-                formItem: {
-                    name: '',
-                    source: '',
-                    database: '',
-                    table: '',
-                    tp: 0,
-                    row: 1
+                {
+                    'title': 'Update',
+                    'v': 1
                 },
-                find: {}
+                {
+                    'title': 'Delete',
+                    'v': 2
+                }
+            ]
+        };
+        task_columns = [
+            {
+                title: '名称',
+                key: 'Name',
+            },
+            {
+                title: '类型',
+                key: 'Tp',
+                slot: 'tp'
+            },
+            {
+                title: '数据源',
+                key: 'Source',
+            },
+            {
+                title: '数据库',
+                key: 'Base',
+            },
+            {
+                title: '数据表',
+                key: 'Table',
+            },
+            {
+                title: '最大影响行数',
+                key: 'Affectrow',
+            },
+            {
+                title: '状态',
+                key: 'status',
+                slot: 'status'
+            },
+            {
+                title: '操作',
+                key: 'action',
+                slot: 'action'
+            },
+        ];
+        task_data = [] as any;
+        showing = false;
+        disable = false;
+        diffArgs = {
+            title: '新建AutoTask',
+            url: 'auto'
+        };
+
+        toggleShow() {
+            this.showing = this.showing = true;
+            this.disable = false;
+            this.diffArgs = {
+                title: '新建AutoTask',
+                url: 'auto'
             }
-        },
-        methods: {
-            referAutoTask() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        axios.post(`${this.$config.url}/${this.diffArgs.url}`, {
-                            'Tp': this.formItem
+        }
+
+        referAutoTask() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    axios.post(`${this.$config.url}/${this.diffArgs.url}`, {
+                        'Tp': this.formItem
+                    })
+                        .then(res => {
+                            this.$config.notice(res.data);
+                            this.fetchAutoTaskList(this.current);
                         })
-                            .then(res => {
-                                this.$config.notice(res.data);
-                                this.fetchAutoTaskList(this.$refs.page.currentPage);
-                            })
-                            .catch(err => this.$config.err_notice(this, err))
-                    } else {
-                        this.$Message.error("请填写相关性信息！")
-                    }
-                })
-            },
-            fetchAutoTaskList(vl = 1) {
-                axios.put(`${this.$config.url}/auto/fetch`, {
-                    page: vl,
-                    find: this.find
-                })
-                    .then(res => {
-                        this.task_data = res.data.data;
-                        this.task_data.forEach((item) => {
-                            (item.Status === 1) ? item.Status = true : item.Status = false
-                        });
-                        this.pg = res.data.pg
-                    })
-            },
-            openEditModal(vl) {
-                this.showing = true;
-                this.formItem = {
-                    id: vl.ID,
-                    row: vl.Affectrow,
-                    name: vl.Name,
-                    table: '',
-                    database: '',
-                    tp: vl.Tp
-                };
-                this.disable = true;
-                this.diffArgs = {
-                    title: '编辑AutoTask',
-                    url: 'auto/edit'
+                        .catch(err => this.$config.err_notice(this, err))
+                } else {
+                    this.$Message.error("请填写相关性信息！")
                 }
-            },
-            delAutoTask(vl) {
-                let step = this.$refs.page.currentPage;
-                if (this.task_data.length === 1) {
-                    step = step - 1
-                }
-                axios.delete(`${this.$config.url}/auto/${vl.ID}`)
-                    .then(res => {
-                        this.$config.notice(res.data);
-                        this.fetchAutoTaskList(step)
-                    })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            queryData() {
-                this.find.valve = true;
-                this.fetchAutoTaskList();
-            },
-            queryCancel() {
-                this.find = this.$config.clearPicker(this.find);
-                this.fetchAutoTaskList();
-            },
-            activityStatus(vl) {
-                let s = 0;
-                if (vl.Status) {
-                    s = 1
-                }
+            })
+        }
 
-                axios.post(`${this.$config.url}/auto/active`, {
-                    'Tp': {'id': vl.ID, 'status': s}
+        fetchAutoTaskList(vl = 1) {
+            axios.put(`${this.$config.url}/auto/fetch`, {
+                page: vl,
+                find: this.find
+            })
+                .then(res => {
+                    this.task_data = res.data.data;
+                    this.task_data.forEach((item: { Status: number | boolean; }) => {
+                        (item.Status === 1) ? item.Status = true : item.Status = false
+                    });
+                    this.page_number = res.data.page_number
                 })
-                    .then(res => this.$config.notice(res.data))
-                    .catch(err => this.$config.err_notice(this, err))
+        }
+
+        openEditModal(vl: { ID: string; Affectrow: number; Name: string; Tp: number; }) {
+            this.showing = true;
+            this.formItem = {
+                id: vl.ID,
+                row: vl.Affectrow,
+                name: vl.Name,
+                table: '',
+                database: '',
+                tp: vl.Tp
+            } as any;
+            this.disable = true;
+            this.diffArgs = {
+                title: '编辑AutoTask',
+                url: 'auto/edit'
             }
-        },
+        }
+
+        delAutoTask(vl: { ID: number }) {
+            let step: any = this.$refs['formItem'];
+            if (this.task_data.length === 1) {
+                step = step - 1
+            }
+            axios.delete(`${this.$config.url}/auto/${vl.ID}`)
+                .then(res => {
+                    this.$config.notice(res.data);
+                    this.fetchAutoTaskList(step)
+                })
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        queryData() {
+            this.find.valve = true;
+            this.fetchAutoTaskList();
+        }
+
+        queryCancel() {
+            this.find = this.$config.clearPicker(this.find);
+            this.fetchAutoTaskList();
+        }
+
+        activityStatus(vl: { Status: boolean; ID: number; }) {
+            let s = 0;
+            if (vl.Status) {
+                s = 1
+            }
+
+            axios.post(`${this.$config.url}/auto/active`, {
+                'Tp': {'id': vl.ID, 'status': s}
+            })
+                .then(res => this.$config.notice(res.data))
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
         mounted() {
             this.fetchAutoTaskList();
             axios.get(`${this.$config.url}/auto`)

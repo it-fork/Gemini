@@ -9,7 +9,7 @@
     <span>当前选择的库: {{dataBase}}</span> <span class="margin-left-10">查询耗时: {{queryTime}} ms</span>
     <br>
     <br>
-    <Button type="error" icon="md-trash" @click.native="clearObj()">清除</Button>
+    <Button type="error" icon="md-trash" @click.native="clearObj(this.formItem)">清除</Button>
     <Button type="info" icon="ios-analytics" @click.native="fetchTableField()" class="margin-left-10">获取表结构</Button>
     <Button type="success" icon="ios-redo" @click.native="querySQL()" class="margin-left-10">查询</Button>
     <Button
@@ -74,8 +74,8 @@
 
 <script>
     import axios from 'axios'
-    import Csv from 'iview/src/utils/csv'
-    import ExportCsv from 'iview/src/components/table/export-csv'
+    import Csv from 'view-design/src/utils/csv'
+    import ExportCsv from 'view-design/src/components/table/export-csv'
     import editor from './editor'
 
     const exportcsv = function exportCsv(params) {

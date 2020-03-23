@@ -87,8 +87,8 @@
             });
           })
           .catch(error => {
-            this.$config.err_notice(this, error)
-          })
+                        this.$config.err_notice(this,error)
+                    })
       });
     }
   };

@@ -1,9 +1,3 @@
-<style>
-  label {
-    font-size: 30px;
-  }
-</style>
-
 <template>
   <div>
     <Row>
@@ -34,7 +28,7 @@
                     <Checkbox v-model="message.ssl">启用ssl端口</Checkbox>
                   </FormItem>
                   <FormItem label="SMTP服务端口:">
-                    <Input placeholder="STMP服务 端口" v-model="message.port"></Input>
+                    <InputNumber v-model="message.port"></InputNumber>
                   </FormItem>
                   <FormItem label="邮件推送人用户名:">
                     <Input placeholder="推送人 用户名" v-model="message.user"></Input>
@@ -57,7 +51,7 @@
                       <span slot="close">关</span>
                     </i-switch>
                   </Form-item>
-                  <Button type="primary" @click="dingding_test()">钉钉测试</Button>
+                  <Button type="primary" @click="dingding_test()">hook测试</Button>
                   <Button type="warning" @click="mail_test()" style="margin-left: 5%">邮件测试</Button>
                 </Form>
               </Card>
@@ -130,7 +124,9 @@
                     </Tag>
                     <br>
                     <Input placeholder="环境名称" v-model="other.foce" style="width: 30%"></Input>
-                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd"  class="margin-left-10">添加环境</Button>
+                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd" class="margin-left-10">
+                      添加环境
+                    </Button>
                   </FormItem>
                   <FormItem label="排除数据库:">
                     <Tag v-for="v in other.exclude_db_list" :key="v" :name="v" type="border" closable color="blue"
@@ -138,7 +134,8 @@
                     </Tag>
                     <br>
                     <Input placeholder="排除数据库" v-model="other.exclued_db" style="width: 30%"></Input>
-                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd_exclued_db" class="margin-left-10">添加排除数据库
+                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd_exclued_db"
+                            class="margin-left-10">添加排除数据库
                     </Button>
                   </FormItem>
                   <FormItem label="脱敏字段:">
@@ -147,7 +144,9 @@
                     </Tag>
                     <br>
                     <Input placeholder="脱敏字段设置" v-model="other.sensitive" style="width: 30%"></Input>
-                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd1"  class="margin-left-10">添加脱敏字段</Button>
+                    <Button icon="ios-plus-empty" type="dashed" size="small" @click="handleAdd1" class="margin-left-10">
+                      添加脱敏字段
+                    </Button>
                   </FormItem>
                   <Row>
                     <Col span="6">
@@ -252,148 +251,184 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 
     import axios from 'axios'
+    import {Component, Mixins} from "vue-property-decorator";
+    import att_mixins from "../../mixins/att";
 
-    export default {
-        name: 'Setting',
-        data() {
-            return {
-                ldap: Object,
-                message: {},
-                other: {
-                    limit: 0,
-                    per_order: 0
+
+    interface other_modal {
+        overdue: string,
+        query_expire: string,
+        limit: number,
+        per_order: number,
+        idc: any,
+        foce: string,
+        insulate_word_list: any,
+        exclude_db_list: any,
+        exclued_db: string,
+        sensitive: string,
+        multi: boolean,
+        register: boolean,
+        export: boolean,
+        query: boolean,
+    }
+
+    interface message_modal {
+        ding: boolean,
+        mail: boolean,
+        port: number,
+    }
+
+    @Component
+    export default class setting extends Mixins(att_mixins) {
+        ldap = {};
+        message = {} as message_modal;
+        other = {
+            limit: 0,
+            per_order: 0
+        } as other_modal;
+
+        del_order() {
+            axios.post(`${this.$config.url}/group/setting/del/order`, {
+                date: this.other.overdue
+            })
+                .then(res => this.$config.notice(res.data))
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        del_query() {
+            axios.post(`${this.$config.url}/group/setting/del/query`, {
+                date: this.other.query_expire
+            })
+                .then(res => this.$config.notice(res.data))
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        handleAdd() {
+            for (let i of this.other.idc) {
+                if (i === this.other.foce) {
+                    this.$Message.error("请勿添加相同环境！");
+                    return
                 }
             }
-        },
-        methods: {
-            del_order() {
-                axios.post(`${this.$config.url}/group/setting/del/order`, {
-                    date: this.other.overdue
-                })
-                    .then(res => this.$config.notice(res.data))
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            del_query() {
-                axios.post(`${this.$config.url}/group/setting/del/query`, {
-                    date: this.other.query_expire
-                })
-                    .then(res => this.$config.notice(res.data))
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            handleAdd() {
-                for (let i of this.other.idc) {
-                    if (i === this.other.foce) {
-                        this.$Message.error("请勿添加相同环境！");
-                        return
-                    }
-                }
-                this.other.idc.push(this.other.foce);
-                this.other.foce = ''
-            },
-            handleAdd1() {
-                for (let i of this.other.insulate_word_list) {
-                    if (i === this.other.sensitive) {
-                        this.$Message.error("请勿添加相同脱敏字段！");
-                        return
-                    }
-                }
+            this.other.idc.push(this.other.foce);
+            this.other.foce = ''
+        }
 
-                this.other.insulate_word_list.push(this.other.sensitive);
-                this.other.sensitive = ''
-            },
-            handleAdd_exclued_db() {
-                for (let i of this.other.exclude_db_list) {
-                    if (i === this.other.exclued_db) {
-                        this.$Message.error("请勿添加相同数据库！");
-                        return
-                    }
+        handleAdd1() {
+            for (let i of this.other.insulate_word_list) {
+                if (i === this.other.sensitive) {
+                    this.$Message.error("请勿添加相同脱敏字段！");
+                    return
                 }
-                this.other.exclude_db_list.push(this.other.exclued_db);
-                this.other.exclued_db = ''
-            },
-            handleClose2(event, name) {
-                const index = this.other.idc.indexOf(name)
-                this.other.idc.splice(index, 1)
-            },
-            handleClose3(event, name) {
-                const index = this.other.insulate_word_list.indexOf(name)
-                this.other.insulate_word_list.splice(index, 1)
-            },
-            handleClose_exclued_db(event, name) {
-                const index = this.other.exclude_db_list.indexOf(name)
-                this.other.exclude_db_list.splice(index, 1)
-            },
-            multi_switching(status) {
-                this.other.multi = status
-            },
-            multi_register(status) {
-                this.other.register = status
-            },
-            multi_export(status) {
-                this.other.export = status
-            },
-            multi_query(status) {
-                this.other.query = status
-            },
-            dingding_switching(status) {
-                this.message.ding = status
-            },
-            mail_switching(status) {
-                this.message.mail = status
-            },
-            ldap_test() {
-                axios.put(`${this.$config.url}/group/setting/test/ldap`, {
-                    'ldap': this.ldap
-                })
-                    .then(res => {
-                        this.$config.notice(res.data)
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            dingding_test() {
-                this.message.port = parseInt(this.message.port);
-                axios.put(`${this.$config.url}/group/setting/test/ding`, {
-                    'mail': this.message
-                })
-                    .then(res => {
-                        this.$config.notice(res.data)
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            mail_test() {
-                this.message.port = parseInt(this.message.port);
-                axios.put(`${this.$config.url}/group/setting/test/mail`, {
-                    'mail': this.message
-                })
-                    .then(res => {
-                        this.$config.notice(res.data)
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
-            },
-            save_upload() {
-                this.message.port = parseInt(this.message.port);
-                axios.post(`${this.$config.url}/group/setting/add`, {
-                    'ldap': this.ldap,
-                    'message': this.message,
-                    'other': this.other
-                })
-                    .then(res => {
-                        this.$config.notice(res.data)
-                    })
-                    .catch(error => {
-                        this.$config.err_notice(this, error)
-                    })
             }
-        },
+
+            this.other.insulate_word_list.push(this.other.sensitive);
+            this.other.sensitive = ''
+        }
+
+        handleAdd_exclued_db() {
+            for (let i of this.other.exclude_db_list) {
+                if (i === this.other.exclued_db) {
+                    this.$Message.error("请勿添加相同数据库！");
+                    return
+                }
+            }
+            this.other.exclude_db_list.push(this.other.exclued_db);
+            this.other.exclued_db = ''
+        }
+
+        handleClose2(event: any, name: string) {
+            const index = this.other.idc.indexOf(name);
+            this.other.idc.splice(index, 1)
+        }
+
+        handleClose3(event: any, name: string) {
+            const index = this.other.insulate_word_list.indexOf(name);
+            this.other.insulate_word_list.splice(index, 1)
+        }
+
+        handleClose_exclued_db(event: any, name: string) {
+            const index = this.other.exclude_db_list.indexOf(name);
+            this.other.exclude_db_list.splice(index, 1)
+        }
+
+        multi_switching(status: boolean) {
+            this.other.multi = status
+        }
+
+        multi_register(status: boolean) {
+            this.other.register = status
+        }
+
+        multi_export(status: boolean) {
+            this.other.export = status
+        }
+
+        multi_query(status: boolean) {
+            this.other.query = status
+        }
+
+        dingding_switching(status: boolean) {
+            this.message.ding = status
+        }
+
+        mail_switching(status: boolean) {
+            this.message.mail = status
+        }
+
+        ldap_test() {
+            axios.put(`${this.$config.url}/group/setting/test/ldap`, {
+                'ldap': this.ldap
+            })
+                .then(res => {
+                    this.$config.notice(res.data)
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
+        dingding_test() {
+            axios.put(`${this.$config.url}/group/setting/test/ding`, {
+                'mail': this.message
+            })
+                .then(res => {
+                    this.$config.notice(res.data)
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
+        mail_test() {
+            axios.put(`${this.$config.url}/group/setting/test/mail`, {
+                'mail': this.message
+            })
+                .then(res => {
+                    this.$config.notice(res.data)
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
+        save_upload() {
+            axios.post(`${this.$config.url}/group/setting/add`, {
+                'ldap': this.ldap,
+                'message': this.message,
+                'other': this.other
+            })
+                .then(res => {
+                    this.$config.notice(res.data)
+                })
+                .catch(error => {
+                    this.$config.err_notice(this, error)
+                })
+        }
+
         mounted() {
             axios.get(`${this.$config.url}/group/setting`)
                 .then(res => {
@@ -408,6 +443,8 @@
     }
 </script>
 
-<style scoped>
-
+<style>
+  label {
+    font-size: 30px;
+  }
 </style>

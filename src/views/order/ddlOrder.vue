@@ -1,13 +1,3 @@
-<style lang="less" scoped>
-  @import "../../styles/common.less";
-  @import "../../styles/table.less";
-
-  p {
-    word-wrap: break-word;
-    word-break: break-all;
-    overflow: hidden;
-  }
-</style>
 <template>
   <div>
     <Row>
@@ -127,219 +117,216 @@
   </div>
 </template>
 
-<script>
-    //
+<script lang="ts">
     import axios from 'axios'
-    import editor from '../../components/editor'
-    import {fetchSth,order} from "../../libs/mixin";
+    import editor from '@/components/editor.vue'
+    import {Component, Mixins} from "vue-property-decorator";
+    import fetch_mixins from "@/mixins/fetch_mixin";
+    import order_mixins from "../../mixins/order_mixin";
 
-    export default {
-        components: {
-            editor: editor
-        },
-        mixins: [fetchSth,order],
-        data() {
-            return {
-                formItem: {
-                    text: '',
-                    idc: '',
-                    source: '',
-                    database: '',
-                    table: '',
-                    backup: 1,
-                    assigned: '',
-                    delay: null
-                },
-                tabs: 'order1',
-                formDynamic: '',
-                validate_gen: true,
-                wordList: [],
-                testResults: [],
-                fieldColumns: [
-                    {
-                        title: '字段名',
-                        key: 'Field'
-                    },
-                    {
-                        title: '字段类型',
-                        key: 'Type',
-                        editable: true
-                    },
-                    {
-                        title: '字段是否为空',
-                        key: 'Null',
-                        editable: true,
-                        option: true
-                    },
-                    {
-                        title: '默认值',
-                        key: 'Default',
-                        editable: true
-                    },
-                    {
-                        title: '备注',
-                        key: 'Comment'
-                    }
-                ],
-                fieldData: [],
-                idxColums: [
-                    {
-                        title: '索引名称',
-                        key: 'IndexName'
-                    },
-                    {
-                        title: '是否唯一索引',
-                        key: 'NonUnique'
-                    },
-                    {
-                        title: '字段名',
-                        key: 'ColumnName'
-                    }
-                ],
-                idxData: [],
-                loading: false
+    @Component({components: {editor}})
+    export default class ddl_order extends Mixins(fetch_mixins, order_mixins) {
+        tabs = 'order1';
+        formDynamic = '';
+        fieldColumns = [
+            {
+                title: '字段名',
+                key: 'Field'
+            },
+            {
+                title: '字段类型',
+                key: 'Type',
+                editable: true
+            },
+            {
+                title: '字段是否为空',
+                key: 'Null',
+                editable: true,
+                option: true
+            },
+            {
+                title: '默认值',
+                key: 'Default',
+                editable: true
+            },
+            {
+                title: '备注',
+                key: 'Comment'
             }
-        },
-        methods: {
-            fetchSource(idc) {
-                if (idc) {
-                    axios.get(`${this.$config.url}/fetch/source/${idc}/ddl`)
+        ];
+        fieldData = [];
+        idxColums = [
+            {
+                title: '索引名称',
+                key: 'IndexName'
+            },
+            {
+                title: '是否唯一索引',
+                key: 'NonUnique'
+            },
+            {
+                title: '字段名',
+                key: 'ColumnName'
+            }
+        ];
+        idxData = [];
+
+        fetchSource(idc: string) {
+            if (idc) {
+                axios.get(`${this.$config.url}/fetch/source/${idc}/ddl`)
+                    .then(res => {
+                        if (res.data.x === 'ddl') {
+                            this.fetchData.source = res.data.source;
+                            this.fetchData.assigned = res.data.assigned
+                        } else {
+                            this.$config.notice('非法劫持参数！')
+                        }
+                    })
+                    .catch(error => {
+                        this.$config.err_notice(this, error)
+                    })
+            }
+        }
+
+        merge() {
+            axios.put(`${this.$config.url}/query/merge`, {
+                'sql': this.formDynamic
+            })
+                .then((res: any) => {
+                    if (!res.data.e) {
+                        this.formDynamic = res.data.sols
+                    } else {
+                        this.$config.notice(res.err_code)
+                    }
+                })
+                .catch((error: any) => this.$config.err_notice(this, error))
+        }
+
+        beauty() {
+            axios.put(`${this.$config.url}/query/beauty`, {
+                'sql': this.formDynamic
+            })
+                .then(res => {
+                    this.formDynamic = res.data
+                })
+                .catch(err => this.$config.err_notice(this, err))
+        }
+
+        fetchStruct() {
+            let is_validate: any = this.$refs['formItem'];
+            let spin:any = this.$Spin;
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    spin.show({
+                        render: (h:any) => {
+                            return h('div', [
+                                h('Icon', {
+                                    props: {
+                                        size: 30,
+                                        type: 'ios-loading'
+                                    },
+                                    style: {
+                                        animation: 'ani-demo-spin 1s linear infinite'
+                                    }
+                                }),
+                                h('div', '数据库连接中,请稍后........')
+                            ])
+                        }
+                    });
+                    axios.put(`${this.$config.url}/fetch/tableinfo`, {
+                        'source': this.formItem.source,
+                        'base': this.formItem.database,
+                        'table': this.formItem.table
+                    })
                         .then(res => {
-                            if (res.data.x === 'ddl') {
-                                this.fetchData.source = res.data.source;
-                                this.fetchData.assigned = res.data.assigned
-                            } else {
-                                this.$config.notice('非法劫持参数！')
-                            }
+                            this.fieldData = res.data.f;
+                            this.idxData = res.data.i;
+                            spin.hide()
+                        })
+                        .catch(() => {
+                            this.$config.err_notice(this)
+                            spin.hide()
+                        })
+                } else {
+                    this.$Message.error('表单验证失败!')
+                }
+            })
+        }
+
+        testSql() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    this.loading = true;
+                    axios.put(`${this.$config.url}/fetch/test`, {
+                        'source': this.formItem.source,
+                        'database': this.formItem.database,
+                        'table': this.formItem.table,
+                        'sql': this.formDynamic,
+                        'isDMl': false
+                    })
+                        .then(res => {
+                            this.testResults = res.data;
+                            let gen = 0;
+                            this.testResults.forEach((vl: { Level: number; }) => {
+                                if (vl.Level !== 0) {
+                                    gen += 1
+                                }
+                            });
+                            this.validate_gen = gen !== 0;
+                            this.loading = false
+                        })
+                        .catch(err => {
+                            this.loading = false;
+                            this.$config.err_notice(this, err)
+                        })
+                } else {
+                    this.$Message.error('请填写具体地址或sql语句后再测试!')
+                }
+            })
+        }
+
+        commitOrder() {
+            let is_validate: any = this.$refs['formItem'];
+            is_validate.validate((valid: boolean) => {
+                if (valid) {
+                    axios.post(`${this.$config.url}/sql/refer`, {
+                        'ddl': this.formItem,
+                        'sql': this.formDynamic,
+                        'ty': 0
+                    })
+                        .then(res => {
+                            this.validate_gen = true;
+                            this.$Notice.success({
+                                title: '成功',
+                                desc: res.data
+                            })
                         })
                         .catch(error => {
+                            this.validate_gen = true;
                             this.$config.err_notice(this, error)
                         })
                 }
-            },
-            merge() {
-                axios.put(`${this.$config.url}/query/merge`, {
-                    'sql': this.formDynamic
-                })
-                    .then(res => {
-                        if (!res.data.e) {
-                            this.formDynamic = res.data.sols
-                        } else {
-                            this.$config.notice(res.err)
-                        }
-                    })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            beauty() {
-                axios.put(`${this.$config.url}/query/beauty`, {
-                    'sql': this.formDynamic
-                })
-                    .then(res => {
-                        this.formDynamic = res.data
-                    })
-                    .catch(err => this.$config.err_notice(this, err))
-            },
-            fetchStruct() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        this.$Spin.show({
-                            render: (h) => {
-                                return h('div', [
-                                    h('Icon', {
-                                        props: {
-                                            size: 30,
-                                            type: 'ios-loading'
-                                        },
-                                        style: {
-                                            animation: 'ani-demo-spin 1s linear infinite'
-                                        }
-                                    }),
-                                    h('div', '数据库连接中,请稍后........')
-                                ])
-                            }
-                        });
-                        axios.put(`${this.$config.url}/fetch/tableinfo`, {
-                            'source': this.formItem.source,
-                            'base': this.formItem.database,
-                            'table': this.formItem.table
-                        })
-                            .then(res => {
-                                this.fieldData = res.data.f;
-                                this.idxData = res.data.i;
-                                this.$Spin.hide()
-                            })
-                            .catch(() => {
-                                this.$config.err_notice(this, '连接失败！详细信息请查看日志')
-                                this.$Spin.hide()
-                            })
-                    } else {
-                        this.$Message.error('表单验证失败!')
-                    }
-                })
-            },
-            testSql() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        this.loading = true;
-                        axios.put(`${this.$config.url}/fetch/test`, {
-                            'source': this.formItem.source,
-                            'database': this.formItem.database,
-                            'table': this.formItem.table,
-                            'sql': this.formDynamic,
-                            'isDMl': false
-                        })
-                            .then(res => {
-                                this.testResults = res.data;
-                                let gen = 0;
-                                this.testResults.forEach(vl => {
-                                    if (vl.Level !== 0) {
-                                        gen += 1
-                                    }
-                                });
-                                if (gen === 0) {
-                                    this.validate_gen = false
-                                } else {
-                                    this.validate_gen = true
-                                }
-                                this.loading = false
-                            })
-                            .catch(err => {
-                                this.loading = false;
-                                this.$config.err_notice(this, err)
-                            })
-                    } else {
-                        this.$Message.error('请填写具体地址或sql语句后再测试!')
-                    }
-                })
-            },
-            commitOrder() {
-                this.$refs['formItem'].validate((valid) => {
-                    if (valid) {
-                        axios.post(`${this.$config.url}/sql/refer`, {
-                            'ddl': this.formItem,
-                            'sql': this.formDynamic,
-                            'ty': 0
-                        })
-                            .then(res => {
-                                this.validate_gen = true;
-                                this.$Notice.success({
-                                    title: '成功',
-                                    desc: res.data
-                                })
-                            })
-                            .catch(error => {
-                                this.validate_gen = true;
-                                this.$config.err_notice(this, error)
-                            })
-                    }
-                })
-            }
-        },
+            })
+        }
+
         mounted() {
             for (let i of this.$config.highlight.split('|')) {
                 this.wordList.push({'vl': i, 'meta': '关键字'})
             }
             this.fetchIDC();
         }
+
     }
 </script>
+
+<style lang="less" scoped>
+  @import "../../styles/common.less";
+  @import "../../styles/table.less";
+
+  p {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+  }
+</style>

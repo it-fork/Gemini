@@ -11,7 +11,7 @@
         <Icon type="md-home" :size="iconSize"></Icon>
         <span class="layout-text">首页</span>
       </MenuItem>
-      <MenuItem name="myorder">
+      <MenuItem name="my_order">
         <Icon type="md-person" :size="iconSize"></Icon>
         <span class="layout-text">我的工单</span>
       </MenuItem>

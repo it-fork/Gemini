@@ -2,7 +2,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import Subnet from './framework.vue'
-import iView from 'iview'
+import iView from 'view-design'
 import Vuex from 'vuex'
 import VueRouter from 'vue-router'
 import axios from 'axios'
@@ -13,6 +13,7 @@ import config from './libs/libs'
 import particles from 'particles.js/particles'
 import mavonEditor from 'mavon-editor'
 import 'mavon-editor/dist/css/index.css'
+import {LoadingBar} from 'view-design'
 
 Vue.config.productionTip = false;
 Vue.prototype.$config = config;
@@ -30,7 +31,7 @@ const RouterConfig = {
 const router = new VueRouter(RouterConfig);
 
 router.beforeEach((to, from, next) => {
-    iView.LoadingBar.start();
+    LoadingBar.start();
     config.title(to.meta.title);
     if (sessionStorage.getItem('locking') === '1' && to.name !== 'locking') { // 判断当前是否是锁定状态
         next(false);
@@ -46,7 +47,7 @@ router.beforeEach((to, from, next) => {
 });
 
 router.afterEach(() => {
-    iView.LoadingBar.finish()
+    LoadingBar.finish();
     window.scrollTo(0, 0)
 });
 

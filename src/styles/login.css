@@ -161,7 +161,7 @@ fieldset[disabled] .form-control {
 
 .form-group.form-group-no-border.input-lg .form-control+.input-group-addon,
 .input-group.form-group-no-border.input-lg .form-control+.input-group-addon {
-  padding: 15px 19px 15px 0;
+  padding: 5px 15px 5px 5px;
 }
 
 .form-group.input-lg .form-control,
