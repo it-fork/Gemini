@@ -34,80 +34,79 @@ libs.mode = function (obj: any) {
     return oc
 };
 
-libs.err_notice = function (vm: any, err: any) {
-    let text = err;
-    if (err.response !== undefined) {
-        if (err.response.status === 401) {
-            text = 'Token过期！请重新登录!';
-            vm.$Message.warning(text);
-            vm.$Modal.confirm({
-                title: '重新登录',
-                cancelText: '退出',
-                okText: '登录',
-                closable: true,
-                render: (h: any) => {
-                    return h('div', [
-                        h('br'),
-                        h('Input', {
-                            props: {
-                                value: vm.$store.state.password,
-                                type: 'password',
-                                autofocus: true,
-                                placeholder: '请输入密码'
-                            },
-                            on: {
-                                input: (val: string) => {
-                                    vm.$store.state.password = val;
-                                }
+libs.err_notice = function (vm: any, err: { response: { status: number, statusText: string } }) {
+
+    let text: string = err.response.statusText;
+    if (err.response.status === 401) {
+        text = 'Token过期！请重新登录!';
+        vm.$Message.warning(text);
+        vm.$Modal.confirm({
+            title: '重新登录',
+            cancelText: '退出',
+            okText: '登录',
+            closable: true,
+            render: (h: any) => {
+                return h('div', [
+                    h('br'),
+                    h('Input', {
+                        props: {
+                            value: vm.$store.state.password,
+                            type: 'password',
+                            autofocus: true,
+                            placeholder: '请输入密码'
+                        },
+                        on: {
+                            input: (val: string) => {
+                                vm.$store.state.password = val;
                             }
-                        }),
-                        h('br'),
-                        h('br'),
-                        h('Checkbox', {
-                            props: {
-                                value: vm.$store.state.openReLogin,
-                            },
-                            style: {
-                                marginLeft: '40%'
-                            },
-                            on: {
-                                checkbox: (val: boolean) => {
-                                    vm.$store.state.openReLogin = val
-                                }
+                        }
+                    }),
+                    h('br'),
+                    h('br'),
+                    h('Checkbox', {
+                        props: {
+                            value: vm.$store.state.openReLogin,
+                        },
+                        style: {
+                            marginLeft: '40%'
+                        },
+                        on: {
+                            checkbox: (val: boolean) => {
+                                vm.$store.state.openReLogin = val
                             }
-                        }, 'ldap登录')
-                    ])
-                },
-                onOk: () => {
-                    let url = vm.$config.auth;
-                    if (vm.$store.state.openReLogin) {
-                        url = `${vm.$config.gen}/ldap`
-                    }
-                    axios.post(url, {
-                        'username': sessionStorage.getItem('user'),
-                        'password': vm.$store.state.password
-                    })
-                        .then(res => {
-                            axios.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.token;
-                            sessionStorage.setItem('jwt', `Bearer ${res.data.token}`);
-                            vm.$Message.success("已重新登录!");
-                            vm.$store.state.password = '';
-                            vm.$store.state.openReLogin = false
-                        })
-                        .catch(err => {
-                            vm.$config.auth_notice(err);
-                            vm.$router.push({
-                                name: 'login'
-                            })
-                        })
-                },
-                onCancel: () => {
-                    vm.$router.push({
-                        name: 'login'
-                    })
+                        }
+                    }, 'ldap登录')
+                ])
+            },
+            onOk: () => {
+                let url = vm.$config.auth;
+                if (vm.$store.state.openReLogin) {
+                    url = `${vm.$config.gen}/ldap`
                 }
-            })
-        }
+                axios.post(url, {
+                    'username': sessionStorage.getItem('user'),
+                    'password': vm.$store.state.password
+                })
+                    .then(res => {
+                        axios.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.token;
+                        sessionStorage.setItem('jwt', `Bearer ${res.data.token}`);
+                        vm.$Message.success("已重新登录!");
+                        vm.$store.state.password = '';
+                        vm.$store.state.openReLogin = false
+                    })
+                    .catch(err => {
+                        vm.$config.auth_notice(err);
+                        vm.$router.push({
+                            name: 'login'
+                        })
+                    })
+            },
+            onCancel: () => {
+                vm.$router.push({
+                    name: 'login'
+                })
+            }
+        })
     } else {
         Notice.error({
             title: '错误',
@@ -116,16 +115,16 @@ libs.err_notice = function (vm: any, err: any) {
     }
 };
 
-libs.auth_notice = function (err: any) {
-    let text = err;
-    if (err.response !== undefined) {
-        if (err.response.status === 401) {
-            text = '账号密码错误,请重新输入!'
-        }
+libs.auth_notice = function (err: { response: { status: number, statusText: string } }) {
+    let text: string;
+    if (err.response.status === 401) {
+        text = '账号密码错误,请重新输入!'
+    } else {
+        text = err.response.statusText
     }
     Notice.error({
         title: '错误',
-        desc: text
+        desc: text,
     })
 };
 
@@ -155,7 +154,7 @@ libs.openPage = function (vm: any, name: string) {
     libs.tag_list(vm, name)
 };
 
-libs.tag_list = function (vm: any, name: string) {
+libs.tag_list = function (vm: any, name: string): void {
     vm.$store.state.pageOpenedList.forEach((vl: any, index: number) => {
         if (vl.name === name && name !== 'home_index') {
             vm.$store.state.pageOpenedList.splice(index, 1)
@@ -223,7 +222,7 @@ libs.sameMerge = function (obj: any, merge: any, el: object) {
     return obj
 };
 
-libs.concat = function (arr1: any, arr2: any) {
+libs.concat = function (arr1: Array<string>, arr2: Array<string>) {
     let arr = arr1.concat();
     for (let i = 0; i < arr2.length; i++) {
         arr.indexOf(arr2[i]) === -1 ? arr.push(arr2[i]) : 0;

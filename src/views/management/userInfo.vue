@@ -315,7 +315,7 @@
         }
 
         registered() {
-            let is_validate: any = this.$refs['userinfoValidate'];
+            let is_validate: any = this.$refs['userinfova'];
             is_validate.validate((valid: boolean) => {
                 if (valid) {
                     this.loading = true;

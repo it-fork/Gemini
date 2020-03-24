@@ -24,7 +24,7 @@ export default class att_mixins extends Vue {
         password: '',
         port: ''
     };
-    wordList = [] as any;
+    wordList: Array<any> = [];
 
     page_number = 1;
     current = 1;
@@ -33,7 +33,7 @@ export default class att_mixins extends Vue {
         user: '',
         valve: false
     };
-    query= {
+    query = {
         user: '',
         department: '',
         valve: false,
