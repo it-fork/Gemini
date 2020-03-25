@@ -41,8 +41,11 @@
       <Button type="error" @click="reject()">驳回</Button>
       <template v-if="multi">
         <Button type="success" @click="agreed()" :disabled="summit" v-if="auth === 'admin'">同意</Button>
+        <Button type="success" @click="perform()" :disabled="summit" v-if="auth === 'perform'">执行</Button>
       </template>
-      <Button type="success" @click="perform()" :disabled="summit">执行</Button>
+      <template v-else>
+        <Button type="success" @click="perform()" :disabled="summit" >执行</Button>
+      </template>
     </div>
   </Modal>
 </template>
@@ -56,7 +59,7 @@
         auth = sessionStorage.getItem('auth');
         loading = false;
         $config: any;
-        summit = false;
+        summit = true;
         multi_name = '';
 
         @Prop({

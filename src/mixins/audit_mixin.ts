@@ -276,7 +276,7 @@ export  default class audit_mixins extends Mixins(att_mixins) {
                     (item.Backup === 1) ? item.Backup = '是' : item.Backup = '否'
                 });
                 this.page_number = res.data.page;
-                this.multi_list = res.data.multi_list
+                this.multi_list = res.data.multi_list;
             })
             .catch(error => {
                         this.$config.err_notice(this,error)
@@ -287,8 +287,7 @@ export  default class audit_mixins extends Mixins(att_mixins) {
         if (vl) {
             let vm = this;
             this.reboot = setInterval(function () {
-                vm.refreshData(vm.current)
-                console.log(vm.current);
+                vm.refreshData(vm.current);
             }, 5000)
         } else {
             clearInterval(this.reboot)

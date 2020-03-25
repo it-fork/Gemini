@@ -27,7 +27,11 @@
                 <Button type="warning" @click="query_empty" class="margin-left-10">删除空查询记录</Button>
               </FormItem>
             </Form>
-            <Table border :columns="columns" :data="table_data" stripe size="small"></Table>
+            <Table border :columns="columns" :data="table_data" stripe size="small">
+              <template slot-scope="{ row }" slot="action">
+                <Button type="text" size="small" @click="open_detail(row)">详细信息</Button>
+              </template>
+            </Table>
           </Col>
         </Row>
         <br>
@@ -70,34 +74,20 @@
                 title: '操作',
                 key: 'action',
                 align: 'center',
-                render: (h: any, params: { row: { WorkId: string, Username: string } }) => {
-                    return h('div', [
-                        h(
-                            'Button',
-                            {
-                                props: {
-                                    size: 'small',
-                                    type: 'text'
-                                },
-                                on: {
-                                    click: () => {
-                                        this.$router.push({
-                                            name: 'query_review',
-                                            query: {
-                                                workid: params.row.WorkId,
-                                                user: params.row.Username
-                                            }
-                                        });
-                                    }
-                                }
-                            },
-                            '详细信息'
-                        )
-                    ]);
-                }
+                slot: 'action'
             }
         ];
         table_data = [];
+
+        open_detail(row: { WorkId: string, Username: string }) {
+            this.$router.push({
+                name: 'query_review',
+                query: {
+                    workid: row.WorkId,
+                    user: row.Username
+                }
+            });
+        }
 
         query_empty() {
             axios.delete(`${this.$config.url}/audit/query/empty`)
